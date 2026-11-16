@@ -1,0 +1,3082 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PustakaKopi — Pencatat Buku & Tontonan 3D</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Oswald (Display Editorial), Plus Jakarta Sans & Lora -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,400;1,600&family=Oswald:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome for crisp icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Oswald"', 'sans-serif'],
+            serif: ['"Lora"', 'serif'],
+          },
+          colors: {
+            tealRef: {
+              DEFAULT: 'var(--theme-primary, #2A5D6B)',
+              dark: 'var(--theme-dark, #1F4955)',
+              muted: '#85A3AC',
+              circle: 'var(--theme-circle, #CDE3E8)',
+              soft: 'var(--theme-soft, #EEF5F7)',
+            },
+            cardGray: '#F4F7F8',
+            ctaBlack: '#1E2528',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --theme-primary: #2A5D6B;
+      --theme-dark: #1F4955;
+      --theme-bg: #214C58;
+      --theme-circle: #CDE3E8;
+      --theme-soft: #EEF5F7;
+    }
+
+    /* Custom Base & Mobile App Shell */
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--theme-bg);
+      background-image: radial-gradient(rgba(255, 255, 255, 0.16) 2px, transparent 2px);
+      background-size: 24px 24px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      transition: background-color 0.35s ease;
+    }
+
+    /* App Container mimicking the crisp white rounded mobile device frame */
+    .app-shell {
+      width: 100%;
+      max-width: 430px;
+      height: 100dvh;
+      max-height: 910px;
+      background-color: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 32px 75px -15px rgba(12, 34, 41, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    @media (min-width: 480px) {
+      .app-shell {
+        height: 94dvh;
+        border-radius: 36px;
+      }
+    }
+
+    /* Hide scrollbars cleanly while keeping scrollability */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Vertical Architectural Editorial Typography (matching "HOUSEHOLD" in reference) */
+    .vertical-editorial-text {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.06em;
+      user-select: none;
+    }
+
+    /* =========================================================
+       REALISTIC CSS 3D STANDING HARDCOVER BOOK & CINEMA CASE
+       ========================================================= */
+    .book-3d-stage {
+      perspective: 1100px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    /* 3D Hardcover Book */
+    .book-3d {
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateY(-22deg) rotateX(4deg);
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), filter 0.3s ease;
+      border-radius: 3px 8px 8px 3px;
+      box-shadow:
+        -12px 18px 26px rgba(13, 35, 42, 0.38),
+        -3px 6px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    .group:hover .book-3d {
+      transform: rotateY(-12deg) rotateX(2deg) translateY(-6px) scale(1.03);
+    }
+
+    .book-3d-cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 3px 7px 7px 3px;
+      display: block;
+      position: relative;
+      z-index: 2;
+      background-color: #2A5D6B;
+    }
+
+    /* Spine hinge crease & glossy reflection on front cover */
+    .book-3d::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      border-radius: 3px 7px 7px 3px;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.32) 0%,
+        rgba(0, 0, 0, 0.24) 6%,
+        rgba(255, 255, 255, 0.28) 11%,
+        rgba(255, 255, 255, 0.0) 26%,
+        rgba(255, 255, 255, 0.12) 65%,
+        rgba(0, 0, 0, 0.15) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Stacked White/Ivory Paper Thickness on the Right Edge */
+    .book-3d::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      bottom: 3px;
+      right: -12px;
+      width: 13px;
+      z-index: 1;
+      transform: rotateY(78deg);
+      transform-origin: left center;
+      border-radius: 0 3px 3px 0;
+      background: repeating-linear-gradient(
+        90deg,
+        #fcfaf5 0px,
+        #fcfaf5 1.5px,
+        #dcd6c8 1.5px,
+        #dcd6c8 2.5px
+      );
+      box-shadow: inset 2px 0 4px rgba(0, 0, 0, 0.18);
+    }
+
+    /* 3D Cinema / Watch Edition Case */
+    .cinema-3d {
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateY(-22deg) rotateX(5deg);
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      border-radius: 7px;
+      border: 2px solid #18181b;
+      background: #09090b;
+      box-shadow:
+        -12px 18px 26px rgba(13, 35, 42, 0.42),
+        0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    .group:hover .cinema-3d {
+      transform: rotateY(-10deg) rotateX(2deg) translateY(-6px) scale(1.03);
+    }
+
+    .cinema-3d-cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 5px;
+      display: block;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Cinema Case Spine & Glossy Acrylic Reflection */
+    .cinema-3d::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      border-radius: 5px;
+      background: linear-gradient(
+        115deg,
+        rgba(255, 255, 255, 0.32) 0%,
+        rgba(255, 255, 255, 0.06) 35%,
+        transparent 55%,
+        rgba(0, 0, 0, 0.25) 100%
+      );
+      pointer-events: none;
+    }
+
+    .cinema-3d::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      bottom: 2px;
+      right: -10px;
+      width: 11px;
+      z-index: 1;
+      transform: rotateY(78deg);
+      transform-origin: left center;
+      background: linear-gradient(180deg, #27272a 0%, #09090b 50%, #27272a 100%);
+      border-left: 1px solid #52525b;
+    }
+
+    /* =========================================================
+       INTERACTIVE 3D OPEN BOOK SPREAD (CINEMATIC 2000ms STAGE)
+       ========================================================= */
+    .open-book-stage {
+      width: 100%;
+      max-width: 412px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 20;
+    }
+
+    .open-book-stage.is-3d-animating {
+      perspective: 1800px;
+      transform-style: preserve-3d;
+    }
+
+    .cinema-book-assembly {
+      position: relative;
+      width: 100%;
+    }
+
+    .open-book-stage.is-3d-animating .cinema-book-assembly {
+      transform-style: preserve-3d;
+      will-change: transform, opacity;
+    }
+
+    .book-floor-shadow {
+      position: absolute;
+      left: 6%;
+      right: 6%;
+      bottom: -18px;
+      height: 26px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(13, 35, 42, 0.62) 0%, rgba(13, 35, 42, 0) 74%);
+      filter: blur(8px);
+      pointer-events: none;
+      will-change: transform, opacity;
+      z-index: 0;
+    }
+
+    .open-book-spread {
+      position: relative;
+      width: 100%;
+      min-height: 450px;
+      max-height: 82dvh;
+      border-radius: 16px 24px 24px 16px;
+      box-shadow:
+        0 26px 55px rgba(13, 35, 42, 0.52),
+        inset 0 0 0 1px rgba(180, 165, 140, 0.35);
+      background: #FCF9F2;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    .open-book-stage.is-3d-animating .open-book-spread {
+      transform-style: preserve-3d;
+      transform: translateZ(1px);
+    }
+
+    .open-book-spread::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      bottom: 5px;
+      right: -7px;
+      width: 8px;
+      border-radius: 0 6px 6px 0;
+      background: repeating-linear-gradient(
+        90deg,
+        #fcfaf5 0px,
+        #fcfaf5 1.5px,
+        #dcd4c4 1.5px,
+        #dcd4c4 2.5px
+      );
+      box-shadow: 4px 6px 14px rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .book-front-hinge {
+      position: absolute;
+      inset: 0;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      will-change: transform;
+      z-index: 30;
+      pointer-events: none !important;
+    }
+
+    .book-front-hinge * {
+      pointer-events: none !important;
+    }
+
+    .book-cover-outer {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 10px 24px 24px 10px;
+      overflow: hidden;
+      background: #2A5D6B;
+      box-shadow:
+        inset 12px 0 22px rgba(0, 0, 0, 0.38),
+        inset -2px 0 6px rgba(255, 255, 255, 0.25),
+        10px 16px 32px rgba(0, 0, 0, 0.42);
+    }
+
+    .book-cover-outer img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .book-cover-outer::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.34) 0%,
+        rgba(0, 0, 0, 0.32) 4%,
+        rgba(255, 255, 255, 0.28) 8%,
+        rgba(255, 255, 255, 0) 28%,
+        rgba(0, 0, 0, 0.18) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Dynamic Moving Specular Light Reflection Across Book Cover During Opening */
+    .book-cover-sheen {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        transparent 20%,
+        rgba(255, 255, 255, 0.45) 48%,
+        rgba(255, 255, 255, 0.08) 56%,
+        transparent 80%
+      );
+      transform: translateX(-100%);
+      pointer-events: none;
+      z-index: 5;
+      will-change: transform, opacity;
+    }
+
+    /* Smooth Showcase Slide-Switch Animation */
+    @keyframes showcaseCardEnter {
+      0% {
+        opacity: 0.25;
+        transform: translate3d(26px, 8px, 0) scale(0.96);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+
+    @keyframes showcaseCoverPop {
+      0% {
+        opacity: 0;
+        transform: translate3d(-18px, 16px, 0) rotate(-6deg) scale(0.86);
+      }
+      65% {
+        opacity: 1;
+        transform: translate3d(3px, -4px, 0) rotate(1.5deg) scale(1.03);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+      }
+    }
+
+    .animate-showcase-card {
+      animation: showcaseCardEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .animate-showcase-cover {
+      animation: showcaseCoverPop 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes showcaseSpinPulse {
+      0%, 100% {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+      50% {
+        transform: translate3d(0, -5px, 0) scale(0.985);
+      }
+    }
+
+    .animate-showcase-spinning {
+      animation: showcaseSpinPulse 0.16s ease-in-out infinite;
+    }
+
+    /* Inner Face of the Front Cover (Slate Teal Endpaper matching new theme) */
+    .book-cover-inner-endpaper {
+      position: absolute;
+      inset: 0;
+      transform: rotateY(180deg);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 24px 10px 10px 24px;
+      background-color: var(--theme-primary);
+      background-image:
+        radial-gradient(rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px),
+        radial-gradient(rgba(255, 255, 255, 0.06) 1.2px, var(--theme-primary) 1.2px);
+      background-size: 22px 22px;
+      background-position: 0 0, 11px 11px;
+      box-shadow: inset -14px 0 24px rgba(13, 35, 42, 0.45);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px;
+      color: #FFFFFF;
+    }
+
+    /* Multi-Page Fanning Leaves for Realistic Book Opening */
+    .book-turning-leaf {
+      position: absolute;
+      inset: 5px 7px 5px 2px;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 6px 20px 20px 6px;
+      background: linear-gradient(
+        90deg,
+        rgba(38, 30, 18, 0.28) 0%,
+        #f7f3ea 7%,
+        #fcf9f2 45%,
+        #f3ede0 88%,
+        #dfd6c5 100%
+      );
+      box-shadow:
+        -6px 4px 18px rgba(13, 35, 42, 0.18),
+        inset 10px 0 18px rgba(42, 34, 22, 0.12);
+      will-change: transform, opacity;
+      pointer-events: none !important;
+    }
+
+    .book-turning-leaf.leaf-1 { z-index: 28; }
+    .book-turning-leaf.leaf-2 { z-index: 26; inset: 6px 9px 6px 2px; }
+    .book-turning-leaf.leaf-3 { z-index: 24; inset: 7px 11px 7px 2px; }
+
+    /* Dynamic Spine Gutter Shadow on Interior Spread */
+    .book-gutter-shadow {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 34px;
+      background: linear-gradient(90deg, rgba(13, 35, 42, 0.34) 0%, rgba(13, 35, 42, 0.08) 45%, transparent 100%);
+      pointer-events: none;
+      z-index: 40;
+      will-change: opacity;
+    }
+
+    .paper-texture {
+      background-color: #FCF9F2;
+      background-image:
+        radial-gradient(rgba(139, 123, 98, 0.08) 1px, transparent 0),
+        linear-gradient(90deg, rgba(60, 48, 30, 0.13) 0%, rgba(255, 255, 255, 0.55) 7%, rgba(244, 238, 225, 0.35) 95%, rgba(60, 48, 30, 0.08) 100%);
+      background-size: 16px 16px, 100% 100%;
+    }
+
+    .book-reveal-step {
+      opacity: 0;
+      transform: translateY(12px);
+      will-change: opacity, transform;
+    }
+
+    /* Reference Solid Slate Teal CTA Button */
+    .btn-ref-teal {
+      background-color: var(--theme-primary);
+      color: #FFFFFF;
+      border-radius: 6px;
+      box-shadow: 0 10px 24px rgba(13, 35, 42, 0.24);
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .btn-ref-teal:hover {
+      background-color: var(--theme-dark);
+    }
+
+    .btn-ref-teal:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MAIN APP SHELL (Editorial Slate-Teal & Crisp White Frame matching Reference Image) -->
+  <div class="app-shell" id="appShell">
+
+    <!-- =========================================================
+         VIEW 1: MAIN EDITORIAL SHOWCASE (Left Screen Reference)
+         ========================================================= -->
+    <div id="dashboardScreen" class="flex-1 flex flex-col h-full bg-white overflow-hidden">
+
+      <!-- 1. EDITORIAL HEADER (Customizable Title & Subtitle + Index) -->
+      <header class="pt-6 px-6 shrink-0 bg-white">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h1 id="headerBrandTitle" class="font-display text-[32px] leading-none font-bold tracking-tight text-[#1E2528] truncate">
+              Koleksiku
+            </h1>
+            <p id="headerBrandSubtitle" class="text-[11px] font-medium text-[#85A3AC] mt-1.5 tracking-wide truncate">
+              Buku &amp; tontonan pilihan
+            </p>
+          </div>
+          <div class="text-right shrink-0">
+            <span id="headerIndexNumber" class="font-display text-[28px] leading-none font-bold text-[#1E2528]">
+              01
+            </span>
+          </div>
+        </div>
+
+        <!-- Architectural Thin Line with Center Diamond Ornament (Exact match to Reference) -->
+        <div class="relative flex items-center justify-center my-3.5">
+          <div class="w-full h-[1px] bg-gray-200"></div>
+          <div class="absolute w-2 h-2 bg-white border border-gray-500 rotate-45"></div>
+        </div>
+
+        <!-- 2. FOUR CIRCULAR CATEGORY BUTTONS (Exact match to Reference Top Row) -->
+        <div class="grid grid-cols-4 gap-3 py-1" id="filterPills">
+          <button type="button" onclick="setFilter('all')" data-filter="all" class="filter-pill active flex flex-col items-center gap-1 group cursor-pointer">
+            <div class="pill-circle w-12 h-12 rounded-full bg-tealRef text-white flex items-center justify-center shadow-md transition-all">
+              <i class="fa-solid fa-layer-group text-sm"></i>
+            </div>
+            <span class="pill-label text-[10px] font-bold text-[#1E2528]">Semua</span>
+          </button>
+
+          <button type="button" onclick="setFilter('book')" data-filter="book" class="filter-pill flex flex-col items-center gap-1 group cursor-pointer">
+            <div class="pill-circle w-12 h-12 rounded-full bg-[#85A3AC]/75 text-white group-hover:bg-tealRef flex items-center justify-center transition-all">
+              <i class="fa-solid fa-book-open text-sm"></i>
+            </div>
+            <span class="pill-label text-[10px] font-semibold text-gray-400">Buku</span>
+          </button>
+
+          <button type="button" onclick="setFilter('watch')" data-filter="watch" class="filter-pill flex flex-col items-center gap-1 group cursor-pointer">
+            <div class="pill-circle w-12 h-12 rounded-full bg-[#85A3AC]/75 text-white group-hover:bg-tealRef flex items-center justify-center transition-all">
+              <i class="fa-solid fa-film text-sm"></i>
+            </div>
+            <span class="pill-label text-[10px] font-semibold text-gray-400">Tontonan</span>
+          </button>
+
+          <button type="button" onclick="setFilter('favorite')" data-filter="favorite" class="filter-pill flex flex-col items-center gap-1 group cursor-pointer">
+            <div class="pill-circle w-12 h-12 rounded-full bg-[#85A3AC]/75 text-white group-hover:bg-tealRef flex items-center justify-center transition-all">
+              <i class="fa-solid fa-heart text-sm"></i>
+            </div>
+            <span class="pill-label text-[10px] font-semibold text-gray-400">Favorit</span>
+          </button>
+        </div>
+
+        <!-- Custom Shelves Horizontal Filter Bar -->
+        <div id="customShelvesBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1.5 pb-0.5">
+          <!-- Populated dynamically with custom user shelves -->
+        </div>
+
+        <!-- Subtle Search Input Toggle Row -->
+        <div id="searchBarContainer" class="hidden mt-2.5">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-[#85A3AC] text-xs"></i>
+            <input
+              type="text"
+              id="searchInput"
+              oninput="handleSearchAndFilter()"
+              placeholder="Cari judul buku, film, penulis, atau kutipan..."
+              class="w-full bg-[#F4F7F8] text-gray-800 placeholder-gray-400 text-xs font-medium pl-9 pr-8 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-tealRef/40 transition"
+            />
+            <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-xs p-1 cursor-pointer">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- 3. EDITORIAL STAGE AREA (Left Vertical Label + Right Rounded Teal Showcase Card) -->
+      <main class="flex-1 flex flex-col justify-between px-6 pt-3 pb-2 overflow-hidden">
+        <!-- Subheader Row ("Buku - Selesai" & "Lihat semua >") -->
+        <div class="flex items-center justify-between mb-2.5 shrink-0">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <h2 id="showcaseCategoryTitle" class="text-[14px] font-extrabold text-[#1E2528] truncate">
+              Buku &nbsp;-&nbsp; Selesai
+            </h2>
+            <button type="button" onclick="toggleSearchBar()" title="Cari Koleksi" class="w-6 h-6 rounded-full bg-[#F4F7F8] hover:bg-tealRef text-tealRef hover:text-white flex items-center justify-center text-[10px] transition shrink-0 cursor-pointer">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+            <button type="button" id="spinPickBtn" onclick="spinRandomPick()" title="Pilihan Acak (Spin)" class="h-6 px-2.5 rounded-full bg-tealRef-soft hover:bg-tealRef text-tealRef hover:text-white inline-flex items-center gap-1 text-[10px] font-extrabold transition shrink-0 cursor-pointer">
+              <i id="spinPickIcon" class="fa-solid fa-shuffle text-[9px]"></i>
+              <span>Acak</span>
+            </button>
+          </div>
+          <button type="button" onclick="openAllListModal()" class="text-[11px] font-bold text-[#1E2528] hover:text-tealRef inline-flex items-center gap-1 shrink-0 cursor-pointer">
+            <span>Lihat semua</span>
+            <i class="fa-solid fa-chevron-right text-[9px]"></i>
+          </button>
+        </div>
+
+        <!-- CENTER ASYMMETRIC SHOWCASE (Vertical Giant Watermark Left + Teal Rounded Card Right) -->
+        <div class="relative flex-1 flex items-stretch gap-2 min-h-[280px] my-auto">
+
+          <!-- Left Column: Thin Accent Rule + Giant Vertical Watermark Text ("PUSTAKA" / "SINEMA") -->
+          <div class="w-16 shrink-0 flex items-center justify-center relative overflow-hidden">
+            <div class="absolute left-0 top-2 h-24 w-[2px] bg-tealRef"></div>
+            <span id="verticalWatermarkText" class="vertical-editorial-text text-[54px] font-bold leading-none text-[#EEF3F5] tracking-wider">
+              PUSTAKA
+            </span>
+          </div>
+
+          <!-- Right Column: Asymmetric Rounded Slate-Teal Card (Top-Left & Bottom-Right Rounded) -->
+          <div id="showcaseCardContainer" onclick="openActiveDetail()" class="relative flex-1 bg-tealRef rounded-tl-[44px] rounded-br-[44px] rounded-tr-[14px] rounded-bl-[14px] p-5 flex flex-col justify-between text-white shadow-[0_18px_40px_rgba(13,35,42,0.24)] cursor-pointer group overflow-visible select-none transition-colors duration-300">
+            <!-- Top Subtle Tag & Favorite Toggle -->
+            <div class="flex items-center justify-between z-20 gap-1.5">
+              <span id="showcaseStatusPill" class="px-2.5 py-1 rounded-full bg-white/15 text-[10px] font-bold tracking-wide text-white/95 truncate">
+                Selesai &bull; 346 Hal
+              </span>
+              <button type="button" id="showcaseFavBtn" onclick="event.stopPropagation(); toggleActiveFavorite()" title="Tandai Favorit" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition shrink-0 cursor-pointer">
+                <i class="fa-solid fa-heart text-xs text-white"></i>
+              </button>
+            </div>
+
+            <!-- Center-Left Protruding 3D Book / Cinema Case (Overlaps Left Edge like Reference Chair!) -->
+            <div class="relative my-auto flex items-center justify-center py-2 z-20">
+              <div id="showcase3DCoverMount" class="-ml-10 transition-transform duration-300">
+                <!-- Large 3D Book/Cinema injected dynamically -->
+              </div>
+            </div>
+
+            <!-- Book Title & Author inside Card -->
+            <div class="z-20 mb-2">
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <h3 id="showcaseBookTitle" class="text-base font-extrabold leading-snug text-white line-clamp-1">
+                  Filosofi Teras
+                </h3>
+              </div>
+              <p id="showcaseBookCreator" class="text-[11px] text-white/75 truncate">
+                Henry Manampiring
+              </p>
+            </div>
+
+            <!-- Bottom Row: Bold Rating Score ("9.6") + White Circular '+' Action Button (Exact Reference Layout) -->
+            <div class="flex items-center justify-between z-20 pt-1">
+              <div>
+                <span id="showcaseScoreText" class="font-display text-[26px] leading-none font-bold text-white tracking-tight">
+                  9.6
+                </span>
+                <span class="text-[10px] font-semibold text-white/70 ml-0.5">/10</span>
+              </div>
+
+              <button type="button" onclick="event.stopPropagation(); openAddModal()" title="Tambah Judul Baru" class="w-11 h-11 rounded-full bg-white hover:bg-tealRef-circle text-tealRef flex items-center justify-center shadow-lg transition-transform active:scale-90 cursor-pointer">
+                <i class="fa-solid fa-plus text-base"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. SLIDER INDICATOR DOTS & "Berikutnya" LINK (Exact match to Reference) -->
+        <div class="flex items-center justify-between pt-3 pb-1 shrink-0">
+          <!-- Interactive Dash Pagination Indicators -->
+          <div id="showcasePaginationDots" class="flex items-center gap-1.5 pl-16">
+            <!-- Populated dynamically -->
+          </div>
+
+          <button type="button" onclick="nextShowcaseItem()" class="text-[11px] font-extrabold text-[#1E2528] hover:text-tealRef inline-flex items-center gap-1.5 transition cursor-pointer">
+            <span>Berikutnya</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </main>
+
+      <!-- 5. MINIMALIST 4-ICON BOTTOM NAVIGATION BAR (Exact match to Reference) -->
+      <nav class="h-14 px-8 border-t border-gray-100 bg-white flex items-center justify-between shrink-0">
+        <button type="button" onclick="setFilter('all')" title="Beranda Etalase" class="nav-tab-btn text-tealRef p-2 transition cursor-pointer">
+          <i class="fa-solid fa-house text-base"></i>
+        </button>
+        <button type="button" onclick="openAllListModal()" title="Semua Koleksi" class="nav-tab-btn text-[#85A3AC] hover:text-tealRef p-2 transition cursor-pointer">
+          <i class="fa-solid fa-border-all text-base"></i>
+        </button>
+        <button type="button" onclick="openAddModal()" title="Tambah Judul Baru" class="nav-tab-btn text-[#85A3AC] hover:text-tealRef p-2 transition cursor-pointer">
+          <i class="fa-solid fa-plus-square text-base"></i>
+        </button>
+        <button type="button" onclick="openStatsModal()" title="Profil & Statistik" class="nav-tab-btn text-[#85A3AC] hover:text-tealRef p-2 transition cursor-pointer">
+          <i class="fa-solid fa-user text-base"></i>
+        </button>
+      </nav>
+    </div>
+
+
+    <!-- =========================================================
+         MODAL 1: FULL-SCREEN EDITORIAL DETAIL + 2000ms 3D OPEN BOOK
+         (Matches Right Screen Reference: Teal Top + Circle + White Sheet)
+         ========================================================= -->
+    <div id="detailModal" onclick="if (event.target === this) closeDetailBookWithAnimation()" class="hidden fixed inset-0 z-50 bg-[#1B434E]/80 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-4 transition-opacity duration-300">
+      <!-- Top Floating Replay & Close Controls -->
+      <div id="bookStageTopControls" class="w-full max-w-[404px] flex items-center justify-between mb-2 px-1 opacity-0 transition-opacity duration-300">
+        <button type="button" onclick="replayOpenBookAnimation()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold backdrop-blur-md border border-white/15 transition cursor-pointer">
+          <i class="fa-solid fa-rotate-left text-tealRef-circle text-[10px]"></i>
+          <span>Putar Ulang (2.0s)</span>
+        </button>
+        <button type="button" onclick="closeDetailBookWithAnimation()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1E2528]/90 hover:bg-black text-white text-[11px] font-bold border border-white/15 transition cursor-pointer">
+          <i class="fa-solid fa-book text-tealRef-circle text-[10px]"></i>
+          <span>Tutup Buku</span>
+        </button>
+      </div>
+
+      <!-- 3D Perspective Stage -->
+      <div class="open-book-stage" id="openBookStage">
+        <div class="cinema-book-assembly" id="cinemaBookAssembly">
+          <!-- Dynamic Floor Shadow -->
+          <div class="book-floor-shadow" id="bookFloorShadow"></div>
+
+          <!-- Open Book Interior Spread styled after Right Screen Reference -->
+          <div class="open-book-spread flex flex-col max-h-[84dvh] overflow-y-auto no-scrollbar bg-tealRef">
+            <div class="book-gutter-shadow" id="bookGutterShadow"></div>
+
+            <!-- TOP TEAL HERO SECTION (Title + Light Blue Circle + 3D Cover + Callout Lines) -->
+            <div class="relative px-5 pt-4 pb-5 text-white overflow-hidden shrink-0">
+              <!-- Faint Vertical Editorial Watermark on Right Edge -->
+              <span id="detailVerticalWatermark" class="vertical-editorial-text absolute -right-2 top-3 text-[52px] font-bold text-white/10 pointer-events-none">
+                KOLEKSI
+              </span>
+
+              <!-- Top Bar: Series Label & Action Buttons (Stagger Step 0) -->
+              <div class="book-reveal-step flex items-start justify-between relative z-20" data-stagger="0">
+                <div>
+                  <h3 id="detailTitle" class="font-display text-xl font-bold tracking-tight text-white leading-tight">
+                    Filosofi Teras
+                  </h3>
+                  <p id="detailTypePill" class="text-[11px] font-medium text-tealRef-circle mt-0.5">
+                    Seri Buku &bull; Selesai
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="toggleDetailFavorite()" id="detailFavBtn" title="Favorit" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer">
+                    <i class="fa-solid fa-heart text-xs"></i>
+                  </button>
+                  <button type="button" onclick="editCurrentDetail()" title="Edit Judul" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer">
+                    <i class="fa-solid fa-pen text-xs"></i>
+                  </button>
+                  <button type="button" id="detailDeleteBtn" onclick="handleDeleteClick()" title="Hapus" class="h-8 px-2.5 rounded-full bg-white/15 hover:bg-red-500/85 flex items-center justify-center gap-1 text-white transition cursor-pointer">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                    <span id="detailDeleteLabel" class="hidden text-[10px] font-extrabold">Yakin?</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Center Pale-Blue Circle Spotlight + 3D Book + Technical Callout Lines (Stagger Step 1) -->
+              <div class="book-reveal-step relative my-3 flex items-center justify-center py-2 z-10" data-stagger="1">
+                <!-- Pale Ice-Blue Circle Backdrop matching Reference -->
+                <div class="w-44 h-44 rounded-full bg-tealRef-circle shadow-inner flex items-center justify-center relative">
+                  <div id="detail3DCoverMount" class="z-20">
+                    <!-- 3D Book or Cinema Case injected here -->
+                  </div>
+                </div>
+
+                <!-- Left Architectural Callout Annotations matching Reference -->
+                <div class="absolute left-0 top-5 text-[10px] font-bold text-white/90">
+                  <span id="detailCalloutTop">Hardcover 3D</span>
+                  <div class="w-12 h-[1px] bg-white/60 mt-0.5"></div>
+                </div>
+                <div class="absolute left-0 bottom-5 text-[10px] font-bold text-white/90">
+                  <div class="w-12 h-[1px] bg-white/60 mb-0.5"></div>
+                  <span id="detailCalloutBottom">Edisi Arsip</span>
+                </div>
+              </div>
+
+              <!-- "Status pilihan" / Color-Dot Status Switcher (Exact match to Reference "More choice") -->
+              <div class="book-reveal-step relative z-20 flex items-center justify-between" data-stagger="1">
+                <div>
+                  <p class="text-[11px] font-bold text-white mb-1.5">Status baca &amp; tonton</p>
+                  <div class="flex items-center gap-2.5">
+                    <button type="button" onclick="setDetailStatus('completed')" title="Selesai" class="w-5 h-5 rounded-full bg-emerald-400 ring-2 ring-white/80 transition hover:scale-110 cursor-pointer"></button>
+                    <button type="button" onclick="setDetailStatus('progress')" title="Sedang Berjalan" class="w-5 h-5 rounded-full bg-amber-400 ring-2 ring-white/40 transition hover:scale-110 cursor-pointer"></button>
+                    <button type="button" onclick="setDetailStatus('wishlist')" title="Wishlist" class="w-5 h-5 rounded-full bg-rose-400 ring-2 ring-white/40 transition hover:scale-110 cursor-pointer"></button>
+                  </div>
+                </div>
+
+                <!-- Quick Progress Stepper inside Teal Hero -->
+                <div class="bg-white/15 rounded-full px-2.5 py-1 flex items-center gap-2">
+                  <button type="button" onclick="adjustDetailProgress(-1)" class="w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-[9px] cursor-pointer">
+                    <i class="fa-solid fa-minus"></i>
+                  </button>
+                  <span id="detailProgressNumbers" class="text-[11px] font-extrabold text-white">346 / 346</span>
+                  <button type="button" onclick="adjustDetailProgress(1)" class="w-5 h-5 rounded-full bg-white text-tealRef flex items-center justify-center text-[9px] cursor-pointer">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTTOM ROUNDED WHITE SHEET (3-Column Specs + Focus Timer + Quote + Notes + CTA) -->
+            <div class="bg-white rounded-t-[28px] px-5 pt-5 pb-5 flex-1 flex flex-col justify-between text-[#1E2528]">
+              <div>
+                <!-- 3-Column Spec Row ("Skor" | "Kreator" | "Genre" matching "Price | Brand | From") -->
+                <div class="book-reveal-step grid grid-cols-3 gap-2 pb-3.5 border-b border-gray-100" data-stagger="2">
+                  <div>
+                    <p class="text-[10px] font-bold text-gray-400">Skor</p>
+                    <p id="detailRating" class="font-display text-lg font-bold text-[#1E2528] mt-0.5">9.6/10</p>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-gray-400">Kreator</p>
+                    <p id="detailCreator" class="font-display text-base font-bold text-[#1E2528] truncate mt-0.5">Henry M.</p>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-[10px] font-bold text-gray-400">Genre</p>
+                    <p id="detailGenre" class="font-display text-base font-bold text-[#1E2528] truncate mt-0.5">Filsafat</p>
+                  </div>
+                </div>
+
+                <!-- Shelf Tag Badge if assigned -->
+                <div id="detailShelfRow" class="book-reveal-step hidden mt-2.5 flex items-center gap-1.5" data-stagger="2">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-tealRef-soft text-tealRef text-[10px] font-extrabold">
+                    <i class="fa-solid fa-bookmark text-[9px]"></i>
+                    <span id="detailShelfText">Rak Pilihan</span>
+                  </span>
+                </div>
+
+                <!-- Progress Bar Indicator -->
+                <div class="book-reveal-step my-3" data-stagger="2">
+                  <div class="flex justify-between text-[10px] font-bold text-gray-500 mb-1">
+                    <span id="detailStatusLabel">Progres (100%)</span>
+                    <span id="detailProgressUnitLabel">Halaman</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-tealRef-soft rounded-full overflow-hidden">
+                    <div id="detailProgressBar" class="h-full bg-tealRef rounded-full transition-all duration-300" style="width: 100%"></div>
+                  </div>
+                </div>
+
+                <!-- Focus Reading / Watching Timer Widget -->
+                <div class="book-reveal-step bg-[#F4F7F8] rounded-2xl p-3 mb-3 border border-gray-100" data-stagger="2">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-7 h-7 rounded-full bg-tealRef text-white flex items-center justify-center text-[11px]">
+                        <i class="fa-solid fa-stopwatch"></i>
+                      </div>
+                      <div>
+                        <p class="text-[10px] font-extrabold text-[#1E2528] leading-tight">Sesi Fokus</p>
+                        <p id="focusTimerDisplay" class="font-display text-base font-bold text-tealRef leading-none mt-0.5">25:00</p>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                      <button type="button" onclick="setFocusTimerMinutes(15)" data-timer-min="15" class="timer-preset-btn px-2 py-1 rounded-lg text-[10px] font-bold bg-white text-gray-600 border border-gray-200 cursor-pointer">15m</button>
+                      <button type="button" onclick="setFocusTimerMinutes(25)" data-timer-min="25" class="timer-preset-btn px-2 py-1 rounded-lg text-[10px] font-extrabold bg-tealRef text-white cursor-pointer">25m</button>
+                      <button type="button" onclick="setFocusTimerMinutes(45)" data-timer-min="45" class="timer-preset-btn px-2 py-1 rounded-lg text-[10px] font-bold bg-white text-gray-600 border border-gray-200 cursor-pointer">45m</button>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                      <button type="button" id="focusTimerToggleBtn" onclick="toggleFocusTimer()" class="h-7 px-2.5 rounded-lg bg-[#1E2528] hover:bg-black text-white text-[10px] font-extrabold inline-flex items-center gap-1 cursor-pointer">
+                        <i id="focusTimerToggleIcon" class="fa-solid fa-play text-[9px]"></i>
+                        <span id="focusTimerToggleLabel">Mulai</span>
+                      </button>
+                      <button type="button" onclick="resetFocusTimer()" title="Reset Timer" class="w-7 h-7 rounded-lg bg-white hover:bg-gray-200 text-gray-600 border border-gray-200 flex items-center justify-center text-[10px] cursor-pointer">
+                        <i class="fa-solid fa-rotate-right"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Favorite Quote Box (Clickable for quick edit) -->
+                <div onclick="editCurrentDetail('quote')" title="Klik untuk mengedit kutipan" class="book-reveal-step bg-[#F4F7F8] hover:bg-tealRef-soft border-l-4 border-tealRef rounded-r-xl p-3 mb-3 cursor-pointer group transition" data-stagger="3">
+                  <div class="flex items-center justify-between mb-1">
+                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-tealRef">Kutipan Berkesan</p>
+                    <span class="text-[10px] font-bold text-tealRef opacity-75 group-hover:opacity-100 inline-flex items-center gap-1">
+                      <i class="fa-solid fa-pen text-[9px]"></i> Edit
+                    </span>
+                  </div>
+                  <p id="detailQuote" class="font-serif italic text-xs text-gray-800 leading-relaxed">
+                    "Kita tidak bisa mengendalikan apa yang terjadi di luar diri kita, tetapi kita selalu bisa mengendalikan cara kita meresponsnya."
+                  </p>
+                </div>
+
+                <!-- Personal Notes / Review (Clickable for quick edit) -->
+                <div onclick="editCurrentDetail('notes')" title="Klik untuk mengedit ulasan" class="book-reveal-step mb-4 cursor-pointer group" data-stagger="3">
+                  <div class="flex items-center justify-between mb-1">
+                    <p class="text-[11px] font-extrabold text-[#1E2528] group-hover:text-tealRef transition">Catatan &amp; Ulasan</p>
+                    <span class="text-[10px] font-bold text-gray-400 group-hover:text-tealRef inline-flex items-center gap-1 transition">
+                      <i class="fa-solid fa-pen text-[9px]"></i> Edit
+                    </span>
+                  </div>
+                  <p id="detailNotes" class="text-[11px] text-gray-500 leading-relaxed whitespace-pre-line">
+                    Buku pengantar stoisisme yang sangat relevan dengan kehidupan modern.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Solid Rectangular Slate-Teal CTA Button (Exact match to Reference "Buy now") -->
+              <div class="book-reveal-step pt-1" data-stagger="4">
+                <button type="button" onclick="generateShareCard()" class="btn-ref-teal w-full py-3.5 font-bold text-xs tracking-wide flex items-center justify-center gap-2 cursor-pointer">
+                  <i class="fa-solid fa-image"></i>
+                  <span>Buat Kartu Ulasan (PNG)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- CURVING MULTI-PAGE FANNING LEAVES -->
+          <div class="book-turning-leaf leaf-3" id="bookTurningLeaf3"></div>
+          <div class="book-turning-leaf leaf-2" id="bookTurningLeaf2"></div>
+          <div class="book-turning-leaf leaf-1" id="bookTurningLeaf1"></div>
+
+          <!-- HINGED 3D FRONT COVER FLAP -->
+          <div class="book-front-hinge" id="bookFrontHinge">
+            <div class="book-cover-outer">
+              <img id="hingeFrontCoverImg" src="" alt="Sampul Depan 3D" />
+              <div class="book-cover-sheen" id="bookCoverSheen"></div>
+            </div>
+            <div class="book-cover-inner-endpaper">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-white/15 text-[10px] font-extrabold tracking-widest uppercase">PustakaKopi Ex-Libris</span>
+                <span id="endpaperRatingBadge" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-tealRef text-xs font-extrabold">
+                  <i class="fa-solid fa-star text-[10px]"></i> 9.5
+                </span>
+              </div>
+              <div class="my-auto text-center px-4">
+                <div class="w-16 h-16 mx-auto rounded-full bg-white/15 border border-white/25 flex items-center justify-center mb-3">
+                  <i class="fa-solid fa-book-open text-2xl text-tealRef-circle"></i>
+                </div>
+                <p id="endpaperTitle" class="font-serif font-bold text-lg text-white leading-snug">Judul Buku</p>
+                <p id="endpaperStatus" class="text-xs text-tealRef-circle mt-1">Koleksi Terverifikasi</p>
+              </div>
+              <p class="text-[10px] text-center text-white/75 tracking-wider uppercase">Edisi Arsip Digital 3D</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- =========================================================
+         MODAL 2: ADD / EDIT FORM
+         ========================================================= -->
+    <div id="formModal" onclick="if (event.target === this) closeModal('formModal')" class="hidden fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-end sm:items-center justify-center">
+      <div class="bg-white w-full max-w-[430px] rounded-t-[32px] sm:rounded-[32px] max-h-[92dvh] flex flex-col overflow-hidden shadow-2xl">
+        <!-- Modal Header -->
+        <div class="bg-tealRef text-white px-6 py-4 flex items-center justify-between shrink-0">
+          <div>
+            <h3 id="formModalTitle" class="font-extrabold text-base">Tambah Judul Baru</h3>
+            <p class="text-[11px] text-tealRef-circle">Cari sampul asli otomatis atau unggah foto sendiri</p>
+          </div>
+          <button type="button" onclick="closeModal('formModal')" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center cursor-pointer">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Form Body -->
+        <form id="itemForm" onsubmit="saveItemForm(event)" class="p-5 overflow-y-auto no-scrollbar space-y-3.5 text-xs">
+          <input type="hidden" id="editItemId" value="" />
+
+          <!-- Category Switcher: Buku vs Tontonan -->
+          <div class="grid grid-cols-2 gap-2 p-1 bg-[#F4F7F8] rounded-2xl">
+            <button type="button" id="catBtnBook" onclick="setFormCategory('book')" class="py-2.5 rounded-xl font-extrabold text-xs bg-tealRef text-white shadow-sm flex items-center justify-center gap-2 transition cursor-pointer">
+              <i class="fa-solid fa-book text-[11px]"></i>
+              <span>Buku Bacaan</span>
+            </button>
+            <button type="button" id="catBtnWatch" onclick="setFormCategory('watch')" class="py-2.5 rounded-xl font-bold text-xs text-gray-600 flex items-center justify-center gap-2 transition cursor-pointer">
+              <i class="fa-solid fa-film text-[11px]"></i>
+              <span>Film / Tontonan</span>
+            </button>
+          </div>
+          <input type="hidden" id="formCategory" value="book" />
+
+          <!-- Title + Free Auto-Fetch Cover Button -->
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Judul Buku / Tontonan *</label>
+            <div class="flex gap-2">
+              <input type="text" id="formTitle" required placeholder="Contoh: Laskar Pelangi / Interstellar" class="flex-1 min-w-0 bg-[#F4F7F8] px-3.5 py-2.5 rounded-xl font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-tealRef" />
+              <button type="button" onclick="searchOnlineCovers()" id="autoCoverBtn" class="px-3.5 py-2.5 rounded-xl bg-tealRef hover:bg-tealRef-dark text-white font-extrabold shrink-0 flex items-center gap-1.5 shadow-sm transition cursor-pointer">
+                <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                <span>Cari Sampul</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Auto-Fetched Cover Results Strip -->
+          <div id="coverSearchResultsBox" class="hidden bg-tealRef-soft border border-tealRef-circle rounded-2xl p-2.5">
+            <div class="flex items-center justify-between mb-1.5">
+              <span id="coverSearchStatus" class="text-[11px] font-bold text-tealRef">Pilih sampul asli:</span>
+              <button type="button" onclick="document.getElementById('coverSearchResultsBox').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 text-[11px] cursor-pointer">Tutup</button>
+            </div>
+            <div id="coverResultsGrid" class="flex gap-2.5 overflow-x-auto no-scrollbar py-1">
+              <!-- Cover thumbnails populated by API -->
+            </div>
+          </div>
+
+          <!-- 3D Live Preview & Manual Cover URL / Upload -->
+          <div class="flex items-center gap-3.5 bg-[#F4F7F8] p-3 rounded-2xl">
+            <div id="formLive3DPreview" class="shrink-0 pl-1">
+              <!-- Live 3D preview of chosen cover -->
+            </div>
+            <div class="flex-1 space-y-2 min-w-0">
+              <label class="block font-bold text-gray-700">Sampul Asli (URL atau Unggah)</label>
+              <input type="url" id="formCoverUrl" oninput="updateForm3DPreview()" placeholder="https://... (otomatis terisi saat pilih sampul)" class="w-full bg-white px-3 py-2 rounded-xl text-[11px] text-gray-700 border border-gray-200 focus:outline-none focus:border-tealRef" />
+              <div class="flex items-center gap-2">
+                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 font-bold text-[11px] text-gray-700 shadow-sm">
+                  <i class="fa-solid fa-camera text-tealRef"></i>
+                  <span>Unggah Foto</span>
+                  <input type="file" accept="image/*" onchange="handleLocalCoverUpload(event)" class="hidden" />
+                </label>
+                <span class="text-[10px] text-gray-400">Lokal &amp; Offline</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Author / Director & Genre -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label id="creatorLabel" class="block font-bold text-gray-700 mb-1">Penulis</label>
+              <input type="text" id="formCreator" placeholder="Nama penulis..." class="w-full bg-[#F4F7F8] px-3 py-2.5 rounded-xl font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-tealRef" />
+            </div>
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Genre / Kategori</label>
+              <input type="text" id="formGenre" placeholder="Fiksi, Sci-Fi, Bisnis..." class="w-full bg-[#F4F7F8] px-3 py-2.5 rounded-xl font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-tealRef" />
+            </div>
+          </div>
+
+          <!-- Custom Shelf / Rak Koleksi -->
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Rak Koleksi Kustom (Opsional)</label>
+            <input type="text" id="formShelf" list="existingShelvesList" placeholder="Contoh: Wajib Baca, Rekomendasi Teman, Akhir Pekan..." class="w-full bg-[#F4F7F8] px-3 py-2.5 rounded-xl font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-tealRef" />
+            <datalist id="existingShelvesList"></datalist>
+          </div>
+
+          <!-- Status, Current Progress & Total Pages/Episodes -->
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Status</label>
+              <select id="formStatus" onchange="syncStatusDefaults()" class="w-full bg-[#F4F7F8] px-2.5 py-2.5 rounded-xl font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-tealRef">
+                <option value="completed">Selesai</option>
+                <option value="progress">Berjalan</option>
+                <option value="wishlist">Wishlist</option>
+              </select>
+            </div>
+            <div>
+              <label id="currentProgLabel" class="block font-bold text-gray-700 mb-1">Hal. Dibaca</label>
+              <input type="number" id="formCurrent" min="0" value="100" class="w-full bg-[#F4F7F8] px-3 py-2.5 rounded-xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-tealRef" />
+            </div>
+            <div>
+              <label id="totalProgLabel" class="block font-bold text-gray-700 mb-1">Total Hal.</label>
+              <input type="number" id="formTotal" min="1" value="100" class="w-full bg-[#F4F7F8] px-3 py-2.5 rounded-xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-tealRef" />
+            </div>
+          </div>
+
+          <!-- Rating & Favorite Toggle -->
+          <div class="grid grid-cols-2 gap-2.5 items-end">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Rating Skor (1.0 - 10.0)</label>
+              <input type="number" id="formRating" step="0.1" min="1" max="10" value="9.0" class="w-full bg-[#F4F7F8] px-3 py-2.5 rounded-xl font-extrabold text-tealRef focus:outline-none focus:ring-2 focus:ring-tealRef" />
+            </div>
+            <label class="flex items-center justify-center gap-2 bg-[#F4F7F8] py-2.5 px-3 rounded-xl cursor-pointer font-bold text-gray-700 select-none">
+              <input type="checkbox" id="formFavorite" class="accent-tealRef w-4 h-4" />
+              <i class="fa-solid fa-heart text-rose-500 text-xs"></i>
+              <span>Tandai Favorit</span>
+            </label>
+          </div>
+
+          <!-- Favorite Quote -->
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Kutipan Favorit (Opsional)</label>
+            <textarea id="formQuote" rows="2" placeholder="Tulis kutipan atau dialog paling berkesan..." class="w-full bg-[#F4F7F8] px-3.5 py-2 rounded-xl font-serif italic text-gray-800 focus:outline-none focus:ring-2 focus:ring-tealRef"></textarea>
+          </div>
+
+          <!-- Personal Review Notes -->
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Ulasan / Pelajaran Penting</label>
+            <textarea id="formNotes" rows="2" placeholder="Apa yang paling kamu sukai dari cerita ini?" class="w-full bg-[#F4F7F8] px-3.5 py-2 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-tealRef"></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-ref-teal w-full py-3.5 font-extrabold text-sm tracking-wide mt-2 cursor-pointer">
+            Simpan ke Rak 3D
+          </button>
+        </form>
+      </div>
+    </div>
+
+
+    <!-- =========================================================
+         MODAL 3: STATISTICS, PROFILE, STREAK, THEME & BACKUP
+         ========================================================= -->
+    <div id="statsModal" onclick="if (event.target === this) closeModal('statsModal')" class="hidden fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-[390px] rounded-[28px] overflow-hidden shadow-2xl">
+        <div class="bg-tealRef text-white px-6 py-5 flex items-center justify-between">
+          <div>
+            <h3 class="font-extrabold text-base">Profil, Statistik &amp; Data</h3>
+            <p class="text-[11px] text-tealRef-circle">Ringkasan literasi &amp; sinema pribadimu</p>
+          </div>
+          <button type="button" onclick="closeModal('statsModal')" class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center cursor-pointer">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <div class="p-5 space-y-4 max-h-[82dvh] overflow-y-auto no-scrollbar">
+          <!-- Custom Accent Theme Picker -->
+          <div class="bg-[#F4F7F8] p-3.5 rounded-2xl flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-extrabold text-tealRef uppercase tracking-wider">Tema Warna Kartu</p>
+              <p id="activeThemeName" class="text-xs font-bold text-gray-700 mt-0.5">Slate Teal</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="setAccentTheme('teal')" title="Slate Teal" class="w-6 h-6 rounded-full bg-[#2A5D6B] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition cursor-pointer" data-theme-btn="teal"></button>
+              <button type="button" onclick="setAccentTheme('olive')" title="Forest Olive" class="w-6 h-6 rounded-full bg-[#2F523B] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition cursor-pointer" data-theme-btn="olive"></button>
+              <button type="button" onclick="setAccentTheme('terracotta')" title="Terracotta" class="w-6 h-6 rounded-full bg-[#9A4C38] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition cursor-pointer" data-theme-btn="terracotta"></button>
+              <button type="button" onclick="setAccentTheme('navy')" title="Midnight Navy" class="w-6 h-6 rounded-full bg-[#23395B] ring-2 ring-offset-2 ring-transparent hover:scale-110 transition cursor-pointer" data-theme-btn="navy"></button>
+            </div>
+          </div>
+
+          <!-- Custom Header Title & Subtitle Editor -->
+          <div class="bg-[#F4F7F8] p-3.5 rounded-2xl space-y-2.5">
+            <p class="text-[10px] font-extrabold text-tealRef uppercase tracking-wider">Tampilan Judul Utama</p>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[10px] font-bold text-gray-400 mb-1">Judul Atas</label>
+                <input type="text" id="brandTitleInput" maxlength="22" placeholder="Koleksiku" oninput="updateUserProfile()" class="w-full bg-white rounded-xl px-2.5 py-1.5 font-extrabold text-xs text-gray-900 border border-gray-200 focus:outline-none focus:border-tealRef" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-gray-400 mb-1">Subjudul</label>
+                <input type="text" id="brandSubtitleInput" maxlength="36" placeholder="Buku & tontonan pilihan" oninput="updateUserProfile()" class="w-full bg-white rounded-xl px-2.5 py-1.5 font-semibold text-xs text-gray-700 border border-gray-200 focus:outline-none focus:border-tealRef" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile Name & Yearly Target Editor -->
+          <div class="bg-[#F4F7F8] p-3.5 rounded-2xl flex items-center justify-between gap-2">
+            <div>
+              <p class="text-[10px] font-bold text-gray-400 uppercase">Nama Profil</p>
+              <input type="text" id="profileNameInput" onchange="updateUserProfile()" class="bg-transparent font-extrabold text-sm text-gray-900 focus:outline-none border-b border-dashed border-gray-300 w-32" />
+            </div>
+            <div class="text-right">
+              <p class="text-[10px] font-bold text-gray-400 uppercase">Target Tahun Ini</p>
+              <div class="flex items-center justify-end gap-1">
+                <input type="number" id="yearlyGoalInput" min="1" max="500" onchange="updateUserProfile()" class="w-12 text-right bg-white rounded-lg px-1.5 py-0.5 font-extrabold text-sm text-tealRef border border-gray-200" />
+                <span class="text-xs font-bold text-gray-600">Judul</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 28-Day Activity Streak Heatmap -->
+          <div class="bg-[#F4F7F8] p-3.5 rounded-2xl">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-extrabold text-[#1E2528]">Aktivitas 28 Hari Terakhir</span>
+              <span id="streakBadgeText" class="px-2 py-0.5 rounded-full bg-tealRef text-white text-[10px] font-extrabold">1 Hari Beruntun</span>
+            </div>
+            <div id="activityHeatmapGrid" class="grid gap-1" style="grid-template-columns: repeat(14, minmax(0, 1fr));">
+              <!-- 28 day squares populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Yearly Goal Progress Bar -->
+          <div class="bg-tealRef-soft border border-tealRef-circle p-4 rounded-2xl">
+            <div class="flex justify-between items-center mb-1.5">
+              <span class="text-xs font-extrabold text-tealRef">Progres Target Tahunan</span>
+              <span id="goalRatioText" class="text-xs font-extrabold text-gray-900">0 / 24 Selesai</span>
+            </div>
+            <div class="w-full h-2.5 bg-white rounded-full overflow-hidden shadow-inner">
+              <div id="goalProgressBar" class="h-full bg-tealRef rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p id="goalMotivationalText" class="text-[11px] text-tealRef mt-2 font-medium">Terus lanjutkan kebiasaan membaca dan menontonmu.</p>
+          </div>
+
+          <!-- 4 Symmetrical Metric Cards -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <div class="bg-[#F4F7F8] p-3.5 rounded-2xl">
+              <p class="text-[11px] font-semibold text-gray-500 flex items-center gap-1.5">
+                <i class="fa-solid fa-book text-tealRef text-[10px]"></i>
+                <span>Buku Tamat</span>
+              </p>
+              <p id="statBooksDone" class="font-display text-2xl font-bold text-gray-900 mt-1">0</p>
+            </div>
+            <div class="bg-[#F4F7F8] p-3.5 rounded-2xl">
+              <p class="text-[11px] font-semibold text-gray-500 flex items-center gap-1.5">
+                <i class="fa-solid fa-film text-tealRef text-[10px]"></i>
+                <span>Tontonan Selesai</span>
+              </p>
+              <p id="statWatchDone" class="font-display text-2xl font-bold text-gray-900 mt-1">0</p>
+            </div>
+            <div class="bg-[#F4F7F8] p-3.5 rounded-2xl">
+              <p class="text-[11px] font-semibold text-gray-500 flex items-center gap-1.5">
+                <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
+                <span>Rata-rata Rating</span>
+              </p>
+              <p id="statAvgRating" class="font-display text-2xl font-bold text-amber-500 mt-1">0.0</p>
+            </div>
+            <div class="bg-[#F4F7F8] p-3.5 rounded-2xl">
+              <p class="text-[11px] font-semibold text-gray-500 flex items-center gap-1.5">
+                <i class="fa-solid fa-file-lines text-tealRef text-[10px]"></i>
+                <span>Total Halaman</span>
+              </p>
+              <p id="statTotalPages" class="font-display text-2xl font-bold text-tealRef mt-1">0</p>
+            </div>
+          </div>
+
+          <!-- Integrated Backup & Restore Section -->
+          <div class="pt-2 border-t border-gray-100 space-y-2 text-xs">
+            <p class="text-[11px] font-extrabold text-gray-700">Cadangkan &amp; Pulihkan Data</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="exportDataJSON()" class="py-2.5 px-3 rounded-xl bg-tealRef text-white font-bold flex items-center justify-center gap-1.5 hover:bg-tealRef-dark transition cursor-pointer">
+                <i class="fa-solid fa-file-code"></i>
+                <span>Backup JSON</span>
+              </button>
+              <button type="button" onclick="exportDataCSV()" class="py-2.5 px-3 rounded-xl bg-[#F4F7F8] text-gray-900 font-bold flex items-center justify-center gap-1.5 hover:bg-gray-200 transition cursor-pointer">
+                <i class="fa-solid fa-file-csv text-tealRef"></i>
+                <span>Ekspor CSV</span>
+              </button>
+            </div>
+            <label class="w-full py-2.5 px-3 rounded-xl border border-dashed border-tealRef/50 bg-tealRef-soft/60 text-tealRef font-bold flex items-center justify-center gap-2 hover:bg-tealRef-soft transition cursor-pointer">
+              <i class="fa-solid fa-upload"></i>
+              <span>Pulihkan dari File (.JSON)</span>
+              <input type="file" accept=".json" onchange="importDataJSON(event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- =========================================================
+         MODAL 4: SHAREABLE REVIEW CARD PREVIEW
+         ========================================================= -->
+    <div id="shareModal" onclick="if (event.target === this) closeModal('shareModal')" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-[360px] rounded-[28px] p-5 text-center shadow-2xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-extrabold text-sm text-gray-900">Kartu Ulasan Siap Bagikan</h3>
+          <button type="button" onclick="closeModal('shareModal')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 cursor-pointer">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+        <div class="rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-[#1F4955]">
+          <canvas id="shareCanvas" width="720" height="960" class="w-full h-auto block"></canvas>
+        </div>
+        <button type="button" onclick="downloadShareCanvas()" class="btn-ref-teal w-full py-3.5 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-download"></i>
+          <span>Simpan Gambar ke Galeri (PNG)</span>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- =========================================================
+         MODAL 5: ALL ITEMS GRID VIEW ("Lihat Semua")
+         ========================================================= -->
+    <div id="allListModal" onclick="if (event.target === this) closeModal('allListModal')" class="hidden fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-end sm:items-center justify-center">
+      <div class="bg-white w-full max-w-[430px] rounded-t-[32px] sm:rounded-[32px] h-[85dvh] flex flex-col overflow-hidden shadow-2xl">
+        <div class="bg-tealRef text-white px-6 py-4 flex items-center justify-between shrink-0">
+          <h3 class="font-extrabold text-base">Semua Koleksi (<span id="allModalCount">0</span>)</h3>
+          <button type="button" onclick="closeModal('allListModal')" class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center cursor-pointer">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+        <div id="allListGrid" class="p-5 grid grid-cols-2 gap-x-3.5 gap-y-8 overflow-y-auto no-scrollbar pt-9">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Non-Blocking Toast Notification -->
+    <div id="toastBox" class="pointer-events-none fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] opacity-0 transition-all duration-300 translate-y-3">
+      <div class="bg-[#1E2528]/95 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2 border border-white/10">
+        <i class="fa-solid fa-circle-check text-tealRef-circle"></i>
+        <span id="toastMessage">Tersimpan!</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================
+       JAVASCRIPT APPLICATION LOGIC
+       ========================================================= -->
+  <script>
+    // 1. STATE & DEFAULT SEED DATA (Real Open Library Covers & Thoughtful Notes)
+    const STORAGE_KEY = 'pustakakopi_items_v1';
+    const PROFILE_KEY = 'pustakakopi_profile_v1';
+    const ACTIVITY_KEY = 'pustakakopi_activity_v1';
+
+    const THEME_PRESETS = {
+      teal: {
+        name: 'Slate Teal',
+        primary: '#2A5D6B',
+        dark: '#1F4955',
+        bg: '#214C58',
+        circle: '#CDE3E8',
+        soft: '#EEF5F7'
+      },
+      olive: {
+        name: 'Forest Olive',
+        primary: '#2F523B',
+        dark: '#213B2A',
+        bg: '#24412E',
+        circle: '#CFE2D5',
+        soft: '#EFF5F1'
+      },
+      terracotta: {
+        name: 'Terracotta',
+        primary: '#9A4C38',
+        dark: '#7A3A2A',
+        bg: '#7D3C2C',
+        circle: '#F0D3CB',
+        soft: '#F9F0EE'
+      },
+      navy: {
+        name: 'Midnight Navy',
+        primary: '#23395B',
+        dark: '#182842',
+        bg: '#1B2D48',
+        circle: '#CBD7EB',
+        soft: '#EEF2F8'
+      }
+    };
+
+    const DEFAULT_ITEMS = [
+      {
+        id: 'item-1',
+        title: 'Filosofi Teras',
+        category: 'book',
+        creator: 'Henry Manampiring',
+        genre: 'Filsafat',
+        shelf: 'Wajib Baca',
+        status: 'completed',
+        current: 346,
+        total: 346,
+        rating: 9.6,
+        favorite: true,
+        cover: 'https://covers.openlibrary.org/b/id/12547191-L.jpg',
+        quote: 'Kita tidak bisa mengendalikan apa yang terjadi di luar diri kita, tetapi kita selalu bisa mengendalikan cara kita meresponsnya.',
+        notes: 'Pengantar filsafat Stoa yang sangat membumi untuk meredam emosi negatif dan overthinking sehari-hari.',
+        updatedAt: Date.now() - 10000
+      },
+      {
+        id: 'item-2',
+        title: 'Atomic Habits',
+        category: 'book',
+        creator: 'James Clear',
+        genre: 'Produktivitas',
+        shelf: 'Pengembangan Diri',
+        status: 'completed',
+        current: 320,
+        total: 320,
+        rating: 9.8,
+        favorite: true,
+        cover: 'https://covers.openlibrary.org/b/id/10521270-L.jpg',
+        quote: 'Kamu tidak naik ke level tujuanmu, kamu jatuh ke level sistemmu.',
+        notes: 'Perubahan kecil sebesar 1% setiap hari akan menghasilkan efek majemuk yang luar biasa dalam jangka panjang.',
+        updatedAt: Date.now() - 20000
+      },
+      {
+        id: 'item-3',
+        title: 'Interstellar',
+        category: 'watch',
+        creator: 'Christopher Nolan',
+        genre: 'Sci-Fi',
+        shelf: 'Sinema Klasik',
+        status: 'completed',
+        current: 1,
+        total: 1,
+        rating: 9.9,
+        favorite: true,
+        cover: 'https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg',
+        quote: 'Cinta adalah satu-satunya hal yang mampu melampaui dimensi ruang dan waktu.',
+        notes: 'Visual luar angkasa yang megah dipadukan dengan drama hubungan ayah dan anak yang sangat emosional.',
+        updatedAt: Date.now() - 20000
+      }
+    ];
+
+    let items = [];
+    let profile = {
+      name: 'Pembaca',
+      yearlyGoal: 24,
+      brandTitle: 'Koleksiku',
+      brandSubtitle: 'Buku & tontonan pilihan',
+      theme: 'teal'
+    };
+    let activityLog = {};
+
+    let currentFilter = 'all';
+    let currentShelfFilter = 'all';
+    let searchQuery = '';
+    let activeShowcaseIndex = 0;
+    let activeDetailId = null;
+    let deleteConfirmArmed = false;
+    let deleteConfirmTimer = null;
+    let isSpinningPick = false;
+
+    // Focus Timer State
+    let focusMinutesSetting = 25;
+    let focusSecondsRemaining = 25 * 60;
+    let focusTimerInterval = null;
+    let isFocusRunning = false;
+
+    // 2. INITIALIZATION (Handles both DOMContentLoaded & immediate iframe preview execution)
+    function initApp() {
+      loadFromStorage();
+      applyAccentTheme(profile.theme || 'teal', false);
+      recordDailyActivity(1);
+      initShowcaseSwipe();
+      renderAll(false);
+    }
+
+    function applyAccentTheme(themeKey, persist = true) {
+      const preset = THEME_PRESETS[themeKey] || THEME_PRESETS.teal;
+      const root = document.documentElement;
+      root.style.setProperty('--theme-primary', preset.primary);
+      root.style.setProperty('--theme-dark', preset.dark);
+      root.style.setProperty('--theme-bg', preset.bg);
+      root.style.setProperty('--theme-circle', preset.circle);
+      root.style.setProperty('--theme-soft', preset.soft);
+
+      profile.theme = themeKey;
+      if (persist) saveProfileToStorage();
+
+      const labelEl = document.getElementById('activeThemeName');
+      if (labelEl) labelEl.textContent = preset.name;
+
+      document.querySelectorAll('[data-theme-btn]').forEach(btn => {
+        if (btn.dataset.themeBtn === themeKey) {
+          btn.classList.add('ring-gray-800', 'scale-110');
+          btn.classList.remove('ring-transparent');
+        } else {
+          btn.classList.remove('ring-gray-800', 'scale-110');
+          btn.classList.add('ring-transparent');
+        }
+      });
+    }
+
+    function setAccentTheme(themeKey) {
+      applyAccentTheme(themeKey, true);
+      showToast(`Tema diubah ke ${THEME_PRESETS[themeKey]?.name || 'Slate Teal'}`);
+    }
+
+    function getTodayDateKey() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    function recordDailyActivity(points = 1) {
+      const key = getTodayDateKey();
+      activityLog[key] = (activityLog[key] || 0) + points;
+      try {
+        localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityLog));
+      } catch (e) {}
+    }
+
+    function getUniqueShelves() {
+      const set = new Set();
+      items.forEach(item => {
+        if (item.shelf && item.shelf.trim()) set.add(item.shelf.trim());
+      });
+      return Array.from(set);
+    }
+
+    function renderCustomShelvesBar() {
+      const bar = document.getElementById('customShelvesBar');
+      if (!bar) return;
+      const shelves = getUniqueShelves();
+
+      if (shelves.length === 0) {
+        bar.classList.add('hidden');
+        return;
+      }
+
+      bar.classList.remove('hidden');
+      if (currentShelfFilter !== 'all' && !shelves.includes(currentShelfFilter)) {
+        currentShelfFilter = 'all';
+      }
+
+      const allPill = `
+        <button type="button" onclick="setShelfFilter('all')" class="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold transition cursor-pointer ${currentShelfFilter === 'all' ? 'bg-[#1E2528] text-white' : 'bg-[#F4F7F8] text-gray-500 hover:text-gray-800'}">
+          Semua Rak
+        </button>
+      `;
+
+      const shelfPills = shelves.map(shelf => {
+        const isActive = currentShelfFilter === shelf;
+        return `
+          <button type="button" onclick="setShelfFilter('${escapeHtml(shelf).replace(/'/g, "\\'")}')" class="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer ${isActive ? 'bg-tealRef text-white' : 'bg-[#F4F7F8] text-gray-600 hover:bg-tealRef-soft hover:text-tealRef'}">
+            <i class="fa-solid fa-bookmark text-[8px]"></i>
+            <span>${escapeHtml(shelf)}</span>
+          </button>
+        `;
+      }).join('');
+
+      bar.innerHTML = allPill + shelfPills;
+    }
+
+    function setShelfFilter(shelfName) {
+      currentShelfFilter = shelfName;
+      activeShowcaseIndex = 0;
+      renderAll(true);
+    }
+
+    function renderAll(animateTransition = false) {
+      const titleEl = document.getElementById('headerBrandTitle');
+      const subtitleEl = document.getElementById('headerBrandSubtitle');
+      if (titleEl) titleEl.textContent = profile.brandTitle || 'Koleksiku';
+      if (subtitleEl) subtitleEl.textContent = profile.brandSubtitle || 'Buku & tontonan pilihan';
+
+      renderCustomShelvesBar();
+      const filtered = getFilteredItems();
+
+      if (filtered.length === 0) {
+        document.getElementById('headerIndexNumber').textContent = '00';
+        document.getElementById('showcaseCategoryTitle').textContent = 'Tidak ada judul';
+        document.getElementById('verticalWatermarkText').textContent = 'KOSONG';
+        document.getElementById('showcaseStatusPill').textContent = '0 Koleksi';
+        document.getElementById('showcaseBookTitle').textContent = 'Belum ada judul cocok';
+        document.getElementById('showcaseBookCreator').textContent = 'Ketuk tombol + untuk menambah';
+        document.getElementById('showcaseScoreText').textContent = '0.0';
+        document.getElementById('showcase3DCoverMount').innerHTML = '';
+        document.getElementById('showcasePaginationDots').innerHTML = '';
+        return;
+      }
+
+      if (activeShowcaseIndex >= filtered.length) {
+        activeShowcaseIndex = 0;
+      }
+
+      const activeItem = filtered[activeShowcaseIndex];
+      const indexStr = String(activeShowcaseIndex + 1).padStart(2, '0');
+      document.getElementById('headerIndexNumber').textContent = indexStr;
+
+      const catLabel = activeItem.category === 'book' ? 'Buku' : 'Tontonan';
+      const statusLabel =
+        activeItem.status === 'completed' ? 'Selesai' :
+        activeItem.status === 'progress' ? 'Berjalan' : 'Wishlist';
+      const unit = activeItem.category === 'book' ? 'Hal' : 'Eps';
+
+      document.getElementById('showcaseCategoryTitle').innerHTML = `${catLabel} &nbsp;-&nbsp; ${statusLabel}`;
+      document.getElementById('verticalWatermarkText').textContent = activeItem.category === 'book' ? 'PUSTAKA' : 'SINEMA';
+      document.getElementById('showcaseStatusPill').textContent = activeItem.shelf
+        ? `${activeItem.shelf} • ${activeItem.current}/${activeItem.total} ${unit}`
+        : `${statusLabel} • ${activeItem.current}/${activeItem.total} ${unit}`;
+      document.getElementById('showcaseBookTitle').textContent = activeItem.title;
+      document.getElementById('showcaseBookCreator').textContent = activeItem.creator || 'Koleksi Pribadi';
+      document.getElementById('showcaseScoreText').textContent = Number(activeItem.rating).toFixed(1);
+
+      const favIcon = document.querySelector('#showcaseFavBtn i');
+      favIcon.className = activeItem.favorite
+        ? 'fa-solid fa-heart text-xs text-rose-400'
+        : 'fa-solid fa-heart text-xs text-white/80';
+
+      // Large 3D Book/Cinema Cover protruding on the left of the teal card
+      const coverMount = document.getElementById('showcase3DCoverMount');
+      const cardContainer = document.getElementById('showcaseCardContainer');
+      coverMount.innerHTML = render3DObjectHTML(activeItem, 'w-[116px] h-[168px]');
+
+      if (animateTransition) {
+        if (cardContainer) {
+          cardContainer.classList.remove('animate-showcase-card');
+          void cardContainer.offsetWidth;
+          cardContainer.classList.add('animate-showcase-card');
+        }
+        coverMount.classList.remove('animate-showcase-cover');
+        void coverMount.offsetWidth;
+        coverMount.classList.add('animate-showcase-cover');
+      }
+
+      // Pagination Dash Indicators (supports > 6 items cleanly)
+      const dotsContainer = document.getElementById('showcasePaginationDots');
+      const maxDots = 7;
+      const startDot = filtered.length > maxDots
+        ? Math.max(0, Math.min(activeShowcaseIndex - 3, filtered.length - maxDots))
+        : 0;
+      const visibleSlice = filtered.slice(startDot, startDot + maxDots);
+
+      dotsContainer.innerHTML = visibleSlice.map((item, offset) => {
+        const realIdx = startDot + offset;
+        const isCurrent = realIdx === activeShowcaseIndex;
+        return `
+          <button type="button" onclick="selectShowcaseIndex(${realIdx})" title="${escapeHtml(item.title)}" class="h-[3px] rounded-full transition-all cursor-pointer ${isCurrent ? 'w-5 bg-[#1E2528]' : 'w-3 bg-gray-300 hover:bg-gray-400'}"></button>
+        `;
+      }).join('');
+    }
+
+    function selectShowcaseIndex(idx) {
+      if (idx === activeShowcaseIndex) return;
+      activeShowcaseIndex = idx;
+      renderAll(true);
+    }
+
+    function nextShowcaseItem() {
+      if (isSpinningPick) return;
+      const filtered = getFilteredItems();
+      if (filtered.length === 0) return;
+      activeShowcaseIndex = (activeShowcaseIndex + 1) % filtered.length;
+      renderAll(true);
+    }
+
+    // Smooth Roulette-Style 3D Random Picker ("Pick For Me / Spin")
+    function spinRandomPick() {
+      if (isSpinningPick) return;
+      const filtered = getFilteredItems();
+
+      if (filtered.length === 0) {
+        showToast('Belum ada judul di kategori ini');
+        return;
+      }
+
+      if (filtered.length === 1) {
+        renderAll(true);
+        showToast(`Pilihan terpilih: ${filtered[0].title}`);
+        return;
+      }
+
+      // Prioritize wishlist or in-progress titles if available in current view
+      const priorityPool = filtered
+        .map((item, idx) => ({ item, idx }))
+        .filter(entry => entry.item.status === 'wishlist' || entry.item.status === 'progress');
+
+      const candidatePool = priorityPool.length > 0
+        ? priorityPool
+        : filtered.map((item, idx) => ({ item, idx }));
+
+      let chosen = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+      if (candidatePool.length > 1 && chosen.idx === activeShowcaseIndex) {
+        const others = candidatePool.filter(c => c.idx !== activeShowcaseIndex);
+        chosen = others[Math.floor(Math.random() * others.length)];
+      }
+
+      isSpinningPick = true;
+      const btn = document.getElementById('spinPickBtn');
+      const icon = document.getElementById('spinPickIcon');
+      const cardContainer = document.getElementById('showcaseCardContainer');
+
+      if (btn) btn.classList.add('bg-[#2A5D6B]', 'text-white');
+      if (icon) icon.classList.add('fa-spin');
+      if (cardContainer) cardContainer.classList.add('animate-showcase-spinning');
+
+      const totalSteps = 12 + Math.floor(Math.random() * 5);
+      const startIndex = ((chosen.idx - totalSteps) % filtered.length + filtered.length) % filtered.length;
+      let step = 0;
+
+      function runSpinTick() {
+        step++;
+        activeShowcaseIndex = (startIndex + step) % filtered.length;
+        renderAll(false);
+
+        const coverMount = document.getElementById('showcase3DCoverMount');
+        if (coverMount) {
+          coverMount.style.transform = `translateY(-4px) rotate(${(step % 2 === 0 ? 3 : -3)}deg) scale(1.04)`;
+        }
+
+        if (step < totalSteps) {
+          const progress = step / totalSteps;
+          const delay = Math.round(55 + Math.pow(progress, 2.3) * 240);
+          setTimeout(runSpinTick, delay);
+        } else {
+          if (coverMount) coverMount.style.transform = '';
+          if (cardContainer) cardContainer.classList.remove('animate-showcase-spinning');
+          if (btn) btn.classList.remove('bg-[#2A5D6B]', 'text-white');
+          if (icon) icon.classList.remove('fa-spin');
+          isSpinningPick = false;
+          renderAll(true);
+          showToast(`Pilihan acak: ${filtered[activeShowcaseIndex].title}`);
+        }
+      }
+
+      runSpinTick();
+    }
+
+    function initShowcaseSwipe() {
+      const card = document.getElementById('showcaseCardContainer');
+      if (!card) return;
+      let startX = 0;
+      card.addEventListener('touchstart', e => {
+        if (e.touches && e.touches[0]) startX = e.touches[0].clientX;
+      }, { passive: true });
+      card.addEventListener('touchend', e => {
+        if (!e.changedTouches || !e.changedTouches[0]) return;
+        const diff = e.changedTouches[0].clientX - startX;
+        if (Math.abs(diff) > 45) {
+          const filtered = getFilteredItems();
+          if (filtered.length > 1) {
+            if (diff < 0) {
+              activeShowcaseIndex = (activeShowcaseIndex + 1) % filtered.length;
+            } else {
+              activeShowcaseIndex = (activeShowcaseIndex - 1 + filtered.length) % filtered.length;
+            }
+            renderAll(true);
+          }
+        }
+      }, { passive: true });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+
+    function loadFromStorage() {
+      try {
+        const rawItems = localStorage.getItem(STORAGE_KEY);
+        if (rawItems) {
+          items = JSON.parse(rawItems);
+        } else {
+          items = [...DEFAULT_ITEMS];
+          saveItemsToStorage();
+        }
+
+        const rawProfile = localStorage.getItem(PROFILE_KEY);
+        if (rawProfile) {
+          profile = { ...profile, ...JSON.parse(rawProfile) };
+        }
+
+        const rawAct = localStorage.getItem(ACTIVITY_KEY);
+        if (rawAct) {
+          activityLog = JSON.parse(rawAct);
+        }
+      } catch (e) {
+        items = [...DEFAULT_ITEMS];
+      }
+    }
+
+    function saveItemsToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      } catch (e) {
+        showToast('Penyimpanan penuh, pertimbangkan backup JSON');
+      }
+    }
+
+    function saveProfileToStorage() {
+      try {
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      } catch (e) {}
+    }
+
+    // 3. 3D COVER RENDERING ENGINE (Standing Hardcover Book vs 3D Cinema Case)
+    function createFallbackCover(title, category) {
+      const bg = category === 'book' ? '2A5D6B' : '1E2528';
+      const label = encodeURIComponent((title || 'Judul').slice(0, 18));
+      return `https://placehold.co/260x380/${bg}/FFFFFF?text=${label}`;
+    }
+
+    function render3DObjectHTML(item, sizeClasses = 'w-20 h-28') {
+      const fallback = createFallbackCover(item.title, item.category);
+      const src = item.cover && item.cover.trim() !== '' ? item.cover : fallback;
+
+      if (item.category === 'watch') {
+        return `
+          <div class="book-3d-stage">
+            <div class="cinema-3d ${sizeClasses}">
+              <img src="${src}"
+                   onerror="this.onerror=null;this.src='${fallback}'"
+                   alt="${escapeHtml(item.title)}"
+                   class="cinema-3d-cover" />
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="book-3d-stage">
+          <div class="book-3d ${sizeClasses}">
+            <img src="${src}"
+                 onerror="this.onerror=null;this.src='${fallback}'"
+                 alt="${escapeHtml(item.title)}"
+                 class="book-3d-cover" />
+          </div>
+        </div>
+      `;
+    }
+
+    // 4. EDITORIAL SHOWCASE RENDERING (Left Reference Screen)
+    function getFilteredItems() {
+      return items.filter(item => {
+        if (currentFilter === 'book' && item.category !== 'book') return false;
+        if (currentFilter === 'watch' && item.category !== 'watch') return false;
+        if (currentFilter === 'favorite' && !item.favorite) return false;
+        if (currentShelfFilter !== 'all' && (item.shelf || '').trim() !== currentShelfFilter) return false;
+
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const matchTitle = (item.title || '').toLowerCase().includes(q);
+          const matchCreator = (item.creator || '').toLowerCase().includes(q);
+          const matchGenre = (item.genre || '').toLowerCase().includes(q);
+          const matchShelf = (item.shelf || '').toLowerCase().includes(q);
+          const matchQuote = (item.quote || '').toLowerCase().includes(q);
+          if (!matchTitle && !matchCreator && !matchGenre && !matchShelf && !matchQuote) return false;
+        }
+        return true;
+      });
+    }
+
+    function openActiveDetail() {
+      const filtered = getFilteredItems();
+      if (filtered.length === 0) {
+        openAddModal();
+        return;
+      }
+      const activeItem = filtered[activeShowcaseIndex] || filtered[0];
+      if (activeItem) openDetailModal(activeItem.id);
+    }
+
+    function toggleActiveFavorite() {
+      const filtered = getFilteredItems();
+      if (filtered.length === 0) return;
+      const activeItem = filtered[activeShowcaseIndex] || filtered[0];
+      if (activeItem) toggleFavorite(activeItem.id);
+    }
+
+    function toggleFavorite(id) {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      item.favorite = !item.favorite;
+      saveItemsToStorage();
+      renderAll();
+      showToast(item.favorite ? 'Ditambahkan ke Favorit' : 'Dihapus dari Favorit');
+    }
+
+    function setFilter(filterKey) {
+      currentFilter = filterKey;
+      activeShowcaseIndex = 0;
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        const circle = btn.querySelector('.pill-circle');
+        const label = btn.querySelector('.pill-label');
+        if (btn.dataset.filter === filterKey) {
+          btn.classList.add('active');
+          circle.className = 'pill-circle w-12 h-12 rounded-full bg-tealRef text-white flex items-center justify-center shadow-md transition-all';
+          label.className = 'pill-label text-[10px] font-bold text-[#1E2528]';
+        } else {
+          btn.classList.remove('active');
+          circle.className = 'pill-circle w-12 h-12 rounded-full bg-[#85A3AC]/75 text-white group-hover:bg-tealRef flex items-center justify-center transition-all';
+          label.className = 'pill-label text-[10px] font-semibold text-gray-400';
+        }
+      });
+      renderAll(true);
+    }
+
+    function toggleSearchBar() {
+      const box = document.getElementById('searchBarContainer');
+      box.classList.toggle('hidden');
+      if (!box.classList.contains('hidden')) {
+        document.getElementById('searchInput').focus();
+      }
+    }
+
+    function handleSearchAndFilter() {
+      const input = document.getElementById('searchInput');
+      searchQuery = input.value.trim();
+      activeShowcaseIndex = 0;
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (searchQuery) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+      renderAll();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      searchQuery = '';
+      activeShowcaseIndex = 0;
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      renderAll();
+    }
+
+    // 5. DETAIL MODAL (CINEMATIC 2000ms 3D BOOK OPENING CHOREOGRAPHY + 3D TILT)
+    let bookAnimRafId = null;
+    let isBookOpenComplete = false;
+    let isBookClosing = false;
+
+    function populateDetailContent(item) {
+      const statusLabels = {
+        completed: item.category === 'book' ? 'Seri Buku • Selesai' : 'Seri Sinema • Selesai',
+        progress: item.category === 'book' ? 'Seri Buku • Berjalan' : 'Seri Sinema • Berjalan',
+        wishlist: 'Daftar Tunggu (Wishlist)'
+      };
+
+      const unit = item.category === 'book' ? 'Halaman' : 'Episode';
+      const pct = item.total > 0 ? Math.min(100, Math.round((item.current / item.total) * 100)) : 0;
+      const fallback = createFallbackCover(item.title, item.category);
+      const coverSrc = item.cover && item.cover.trim() !== '' ? item.cover : fallback;
+
+      // Populate Hinged 3D Cover & Slate-Teal Endpaper
+      const hingeImg = document.getElementById('hingeFrontCoverImg');
+      hingeImg.onerror = function () { this.onerror = null; this.src = fallback; };
+      hingeImg.src = coverSrc;
+
+      document.getElementById('endpaperRatingBadge').innerHTML = `<i class="fa-solid fa-star text-[10px]"></i> ${Number(item.rating).toFixed(1)}`;
+      document.getElementById('endpaperTitle').textContent = item.title;
+      document.getElementById('endpaperStatus').textContent = statusLabels[item.status] || 'Koleksi Pribadi';
+
+      // Populate Interior Editorial Spread Content
+      document.getElementById('detailVerticalWatermark').textContent = item.category === 'book' ? 'PUSTAKA' : 'SINEMA';
+      document.getElementById('detailTypePill').textContent = statusLabels[item.status] || 'Koleksi';
+      document.getElementById('detail3DCoverMount').innerHTML = render3DObjectHTML(item, 'w-[92px] h-[134px]');
+      document.getElementById('detailTitle').textContent = item.title;
+      document.getElementById('detailCreator').textContent = item.creator || 'Anonim';
+      document.getElementById('detailRating').textContent = `${Number(item.rating).toFixed(1)}/10`;
+      document.getElementById('detailGenre').textContent = item.genre || 'Umum';
+      document.getElementById('detailCalloutTop').textContent = item.category === 'book' ? 'Hardcover 3D' : 'Edisi Layar';
+      document.getElementById('detailCalloutBottom').textContent = `${item.total} ${unit}`;
+
+      const shelfRow = document.getElementById('detailShelfRow');
+      if (item.shelf && item.shelf.trim()) {
+        shelfRow.classList.remove('hidden');
+        document.getElementById('detailShelfText').textContent = `Rak: ${item.shelf.trim()}`;
+      } else {
+        shelfRow.classList.add('hidden');
+      }
+
+      document.getElementById('detailStatusLabel').textContent = `Progres (${pct}%)`;
+      document.getElementById('detailProgressUnitLabel').textContent = unit;
+      document.getElementById('detailProgressNumbers').textContent = `${item.current} / ${item.total}`;
+      document.getElementById('detailProgressBar').style.width = `${pct}%`;
+
+      document.getElementById('detailQuote').textContent = item.quote && item.quote.trim()
+        ? `"${item.quote.replace(/^"|"$/g, '')}"`
+        : '"Belum ada kutipan yang dicatat untuk judul ini."';
+
+      document.getElementById('detailNotes').textContent = item.notes && item.notes.trim()
+        ? item.notes
+        : 'Klik area ini untuk menambahkan ulasan atau catatan pribadimu.';
+
+      const favBtn = document.getElementById('detailFavBtn');
+      favBtn.className = item.favorite
+        ? 'w-8 h-8 rounded-full bg-rose-500/90 flex items-center justify-center text-white transition cursor-pointer'
+        : 'w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer';
+    }
+
+    // Focus Timer Controls
+    function updateFocusTimerDisplay() {
+      const mins = Math.floor(focusSecondsRemaining / 60);
+      const secs = focusSecondsRemaining % 60;
+      const el = document.getElementById('focusTimerDisplay');
+      if (el) el.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function setFocusTimerMinutes(mins) {
+      pauseFocusTimer();
+      focusMinutesSetting = mins;
+      focusSecondsRemaining = mins * 60;
+      updateFocusTimerDisplay();
+      document.querySelectorAll('.timer-preset-btn').forEach(btn => {
+        if (Number(btn.dataset.timerMin) === mins) {
+          btn.className = 'timer-preset-btn px-2 py-1 rounded-lg text-[10px] font-extrabold bg-tealRef text-white cursor-pointer';
+        } else {
+          btn.className = 'timer-preset-btn px-2 py-1 rounded-lg text-[10px] font-bold bg-white text-gray-600 border border-gray-200 cursor-pointer';
+        }
+      });
+    }
+
+    function toggleFocusTimer() {
+      if (isFocusRunning) {
+        pauseFocusTimer();
+      } else {
+        startFocusTimer();
+      }
+    }
+
+    function startFocusTimer() {
+      if (isFocusRunning) return;
+      if (focusSecondsRemaining <= 0) focusSecondsRemaining = focusMinutesSetting * 60;
+      isFocusRunning = true;
+      const icon = document.getElementById('focusTimerToggleIcon');
+      const label = document.getElementById('focusTimerToggleLabel');
+      if (icon) icon.className = 'fa-solid fa-pause text-[9px]';
+      if (label) label.textContent = 'Jeda';
+
+      focusTimerInterval = setInterval(() => {
+        focusSecondsRemaining--;
+        updateFocusTimerDisplay();
+        if (focusSecondsRemaining <= 0) {
+          pauseFocusTimer();
+          playGentleChime();
+          recordDailyActivity(2);
+          showToast('Sesi fokus selesai! Jangan lupa perbarui progresmu.');
+        }
+      }, 1000);
+    }
+
+    function pauseFocusTimer() {
+      isFocusRunning = false;
+      clearInterval(focusTimerInterval);
+      const icon = document.getElementById('focusTimerToggleIcon');
+      const label = document.getElementById('focusTimerToggleLabel');
+      if (icon) icon.className = 'fa-solid fa-play text-[9px]';
+      if (label) label.textContent = 'Mulai';
+    }
+
+    function resetFocusTimer() {
+      pauseFocusTimer();
+      focusSecondsRemaining = focusMinutesSetting * 60;
+      updateFocusTimerDisplay();
+    }
+
+    function playGentleChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.35);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.9);
+      } catch (e) {}
+    }
+
+    function openDetailModal(id, skipAnimation = false) {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      activeDetailId = id;
+      isBookClosing = false;
+      resetDeleteConfirmState();
+      resetFocusTimer();
+
+      populateDetailContent(item);
+
+      const modal = document.getElementById('detailModal');
+      modal.classList.remove('hidden');
+
+      if (skipAnimation) {
+        applyBookOpenFinalState();
+      } else {
+        play2000msOpenBookSequence();
+      }
+    }
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function easeInOutQuint(t) {
+      return t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
+    }
+
+    function easeOutBackSoft(t) {
+      const c1 = 1.15;
+      const c3 = c1 + 1;
+      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    }
+
+    function clamp01(v) {
+      return Math.max(0, Math.min(1, v));
+    }
+
+    function getBookLeafEls() {
+      return [
+        document.getElementById('bookTurningLeaf1'),
+        document.getElementById('bookTurningLeaf2'),
+        document.getElementById('bookTurningLeaf3')
+      ].filter(Boolean);
+    }
+
+    function applyBookOpenFinalState() {
+      const stage = document.getElementById('openBookStage');
+      const assembly = document.getElementById('cinemaBookAssembly');
+      const hinge = document.getElementById('bookFrontHinge');
+      const leaves = getBookLeafEls();
+      const shadow = document.getElementById('bookFloorShadow');
+      const gutter = document.getElementById('bookGutterShadow');
+      const topControls = document.getElementById('bookStageTopControls');
+
+      stage.classList.remove('is-3d-animating');
+      assembly.style.transformStyle = 'flat';
+      assembly.style.transform = '';
+      hinge.style.display = 'none';
+      hinge.style.transform = 'rotateY(-178deg)';
+      hinge.style.opacity = '0';
+      hinge.style.visibility = 'hidden';
+
+      leaves.forEach((leaf, idx) => {
+        leaf.style.display = 'none';
+        leaf.style.transform = `rotateY(${-175 + idx * 2}deg)`;
+        leaf.style.opacity = '0';
+        leaf.style.visibility = 'hidden';
+      });
+
+      if (gutter) gutter.style.opacity = '0.28';
+      shadow.style.transform = 'scale(1.06)';
+      shadow.style.opacity = '0.52';
+      topControls.classList.remove('opacity-0');
+
+      document.querySelectorAll('.book-reveal-step').forEach(el => {
+        el.style.opacity = '1';
+        el.style.transform = '';
+      });
+      isBookOpenComplete = true;
+    }
+
+    // 2000ms (2.0s) MULTI-PAGE 3D BOOK OPENING CHOREOGRAPHY
+    function play2000msOpenBookSequence() {
+      if (bookAnimRafId) cancelAnimationFrame(bookAnimRafId);
+      isBookOpenComplete = false;
+
+      const stage = document.getElementById('openBookStage');
+      const assembly = document.getElementById('cinemaBookAssembly');
+      const hinge = document.getElementById('bookFrontHinge');
+      const sheen = document.getElementById('bookCoverSheen');
+      const leaves = getBookLeafEls();
+      const shadow = document.getElementById('bookFloorShadow');
+      const gutter = document.getElementById('bookGutterShadow');
+      const topControls = document.getElementById('bookStageTopControls');
+      const staggerEls = Array.from(document.querySelectorAll('.book-reveal-step'));
+
+      stage.classList.add('is-3d-animating');
+      assembly.style.transformStyle = 'preserve-3d';
+      topControls.classList.add('opacity-0');
+
+      hinge.style.display = 'block';
+      hinge.style.visibility = 'visible';
+      hinge.style.opacity = '1';
+      hinge.style.transform = 'rotateY(0deg)';
+      if (sheen) {
+        sheen.style.transform = 'translateX(-100%)';
+        sheen.style.opacity = '0';
+      }
+
+      leaves.forEach(leaf => {
+        leaf.style.display = 'block';
+        leaf.style.visibility = 'visible';
+        leaf.style.opacity = '1';
+        leaf.style.transform = 'rotateY(0deg)';
+      });
+
+      if (gutter) gutter.style.opacity = '1';
+
+      staggerEls.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(14px)';
+      });
+
+      const DURATION = 2000;
+      const startTime = performance.now();
+
+      function tick(now) {
+        const elapsed = now - startTime;
+        const progress = clamp01(elapsed / DURATION);
+
+        // Phase 1 (0ms - 680ms): Book rises from desk with soft spring tilt & lands flat
+        const p1 = easeOutBackSoft(clamp01(elapsed / 680));
+        const translateY = (1 - p1) * 76;
+        const rotY = (1 - p1) * -36;
+        const rotX = (1 - p1) * 16;
+        const rotZ = (1 - p1) * -3.5;
+        const scale = 0.70 + (p1 * 0.30);
+        assembly.style.transform = `translate3d(0px, ${translateY.toFixed(2)}px, 0px) rotateY(${rotY.toFixed(2)}deg) rotateX(${rotX.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
+
+        const shadowScale = 0.72 + (clamp01(p1) * 0.34);
+        const shadowOpacity = 0.88 - (clamp01(p1) * 0.36);
+        shadow.style.transform = `scale(${shadowScale.toFixed(3)})`;
+        shadow.style.opacity = shadowOpacity.toFixed(3);
+
+        // Phase 2 (540ms - 1680ms): Hardcover swings open 0deg -> -178deg with realistic inertia
+        const rawP2 = clamp01((elapsed - 540) / 1140);
+        const p2 = easeInOutQuint(rawP2);
+        const coverAngle = p2 * -178;
+        hinge.style.transform = `rotateY(${coverAngle.toFixed(2)}deg)`;
+
+        if (sheen) {
+          const sheenShift = -100 + p2 * 210;
+          sheen.style.transform = `translateX(${sheenShift.toFixed(1)}%)`;
+          sheen.style.opacity = Math.sin(p2 * Math.PI).toFixed(3);
+        }
+
+        if (coverAngle < -150) {
+          const fadeOutHinge = 1 - clamp01((Math.abs(coverAngle) - 150) / 28);
+          hinge.style.opacity = fadeOutHinge.toFixed(3);
+        } else {
+          hinge.style.opacity = '1';
+        }
+
+        // Staggered 3-sheet paper fanning trailing behind the front cover
+        leaves.forEach((leaf, idx) => {
+          const delay = 620 + idx * 95;
+          const dur = 1040 - idx * 45;
+          const rawLeaf = clamp01((elapsed - delay) / dur);
+          const pLeaf = easeInOutCubic(rawLeaf);
+          const leafAngle = pLeaf * (-176 + idx * 2);
+          const subtleArch = Math.sin(pLeaf * Math.PI) * (3.5 - idx * 0.8);
+          leaf.style.transform = `rotateY(${leafAngle.toFixed(2)}deg) skewY(${subtleArch.toFixed(2)}deg)`;
+          leaf.style.opacity = pLeaf > 0.80 ? (1 - (pLeaf - 0.80) / 0.20).toFixed(3) : '1';
+        });
+
+        if (gutter) {
+          gutter.style.opacity = (1 - p2 * 0.72).toFixed(3);
+        }
+
+        // Phase 3 (1440ms - 2000ms): Crisp staggered reveal of interior typography & buttons
+        staggerEls.forEach((el, idx) => {
+          const stepDelay = 1440 + idx * 70;
+          const stepP = easeOutCubic(clamp01((elapsed - stepDelay) / 360));
+          el.style.opacity = stepP.toFixed(3);
+          el.style.transform = `translateY(${((1 - stepP) * 14).toFixed(2)}px)`;
+        });
+
+        if (elapsed >= 1620) {
+          topControls.classList.remove('opacity-0');
+        }
+
+        if (progress < 1) {
+          bookAnimRafId = requestAnimationFrame(tick);
+        } else {
+          applyBookOpenFinalState();
+        }
+      }
+
+      bookAnimRafId = requestAnimationFrame(tick);
+    }
+
+    function replayOpenBookAnimation() {
+      if (!activeDetailId || isBookClosing) return;
+      play2000msOpenBookSequence();
+    }
+
+    function closeDetailBookWithAnimation() {
+      if (isBookClosing) return;
+      isBookClosing = true;
+      isBookOpenComplete = false;
+      if (bookAnimRafId) cancelAnimationFrame(bookAnimRafId);
+
+      const modal = document.getElementById('detailModal');
+      const stage = document.getElementById('openBookStage');
+      const assembly = document.getElementById('cinemaBookAssembly');
+      const hinge = document.getElementById('bookFrontHinge');
+      const leaves = getBookLeafEls();
+      const gutter = document.getElementById('bookGutterShadow');
+      const shadow = document.getElementById('bookFloorShadow');
+      const topControls = document.getElementById('bookStageTopControls');
+
+      stage.classList.add('is-3d-animating');
+      assembly.style.transformStyle = 'preserve-3d';
+      topControls.classList.add('opacity-0');
+
+      hinge.style.display = 'block';
+      hinge.style.visibility = 'visible';
+      hinge.style.opacity = '1';
+
+      leaves.forEach(leaf => {
+        leaf.style.display = 'block';
+        leaf.style.visibility = 'visible';
+        leaf.style.opacity = '1';
+      });
+
+      const CLOSE_DURATION = 780;
+      const startTime = performance.now();
+
+      function tickClose(now) {
+        const elapsed = now - startTime;
+        const rawT = clamp01(elapsed / CLOSE_DURATION);
+
+        // Paper leaves close first, followed by heavy hardcover snapping shut cleanly
+        leaves.forEach((leaf, idx) => {
+          const leafT = easeInOutCubic(clamp01(elapsed / (CLOSE_DURATION * 0.78 - idx * 45)));
+          const leafAngle = (-176 + idx * 2) * (1 - leafT);
+          leaf.style.transform = `rotateY(${leafAngle.toFixed(2)}deg)`;
+        });
+
+        const coverT = easeInOutQuint(clamp01((elapsed - 60) / (CLOSE_DURATION - 60)));
+        const angle = -178 * (1 - coverT);
+        hinge.style.transform = `rotateY(${angle.toFixed(2)}deg)`;
+
+        if (gutter) {
+          gutter.style.opacity = (0.28 + coverT * 0.72).toFixed(3);
+        }
+
+        // Book returns gracefully into standing 3D angle & recedes downward
+        const bodyT = easeInOutCubic(clamp01((elapsed - 160) / (CLOSE_DURATION - 160)));
+        const scale = 1 - bodyT * 0.24;
+        const translateY = bodyT * 52;
+        const rotY = bodyT * -28;
+        const rotX = bodyT * 10;
+        assembly.style.transform = `translate3d(0px, ${translateY.toFixed(2)}px, 0px) rotateY(${rotY.toFixed(2)}deg) rotateX(${rotX.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
+        assembly.style.opacity = (1 - Math.max(0, (bodyT - 0.55) / 0.45)).toFixed(3);
+        shadow.style.opacity = (0.52 * (1 - bodyT)).toFixed(3);
+
+        if (rawT < 1) {
+          bookAnimRafId = requestAnimationFrame(tickClose);
+        } else {
+          stage.classList.remove('is-3d-animating');
+          assembly.style.opacity = '1';
+          modal.classList.add('hidden');
+          isBookClosing = false;
+        }
+      }
+
+      bookAnimRafId = requestAnimationFrame(tickClose);
+    }
+
+    // Subtle Desktop Hover Parallax ONLY on non-touch pointers so mobile taps never shift coordinates
+    (function initOpenBook3DTilt() {
+      const stage = document.getElementById('openBookStage');
+      const assembly = document.getElementById('cinemaBookAssembly');
+      if (!stage || !assembly) return;
+
+      stage.addEventListener('mousemove', e => {
+        if (!isBookOpenComplete || isBookClosing) return;
+        if (e.target && e.target.closest('button, [onclick]')) {
+          assembly.style.transform = '';
+          return;
+        }
+        const rect = stage.getBoundingClientRect();
+        const normX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+        const normY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+        const tiltY = normX * 2.5;
+        const tiltX = -normY * 2;
+        assembly.style.transform = `perspective(1800px) rotateY(${tiltY.toFixed(2)}deg) rotateX(${tiltX.toFixed(2)}deg)`;
+      });
+
+      stage.addEventListener('mouseleave', () => {
+        if (!isBookOpenComplete || isBookClosing) return;
+        assembly.style.transform = '';
+      });
+    })();
+
+    function setDetailStatus(newStatus) {
+      if (!activeDetailId) return;
+      const item = items.find(i => i.id === activeDetailId);
+      if (!item) return;
+      item.status = newStatus;
+      if (newStatus === 'completed') item.current = item.total;
+      if (newStatus === 'wishlist') item.current = 0;
+      saveItemsToStorage();
+      renderAll();
+      populateDetailContent(item);
+      showToast('Status diperbarui');
+    }
+
+    function adjustDetailProgress(delta) {
+      if (!activeDetailId) return;
+      const item = items.find(i => i.id === activeDetailId);
+      if (!item) return;
+
+      const nextVal = Math.max(0, Math.min(item.total, (Number(item.current) || 0) + delta));
+      item.current = nextVal;
+      if (nextVal >= item.total && item.total > 0) {
+        item.status = 'completed';
+      } else if (nextVal > 0 && item.status === 'wishlist') {
+        item.status = 'progress';
+      }
+
+      recordDailyActivity(1);
+      saveItemsToStorage();
+      renderAll();
+      populateDetailContent(item);
+    }
+
+    function toggleDetailFavorite() {
+      if (!activeDetailId) return;
+      toggleFavorite(activeDetailId);
+      const item = items.find(i => i.id === activeDetailId);
+      if (item) populateDetailContent(item);
+    }
+
+    function editCurrentDetail(focusField = null) {
+      if (!activeDetailId) return;
+      const id = activeDetailId;
+      if (bookAnimRafId) cancelAnimationFrame(bookAnimRafId);
+      isBookClosing = false;
+      resetDeleteConfirmState();
+      closeModal('detailModal');
+      openAddModal(id, focusField);
+    }
+
+    function resetDeleteConfirmState() {
+      deleteConfirmArmed = false;
+      clearTimeout(deleteConfirmTimer);
+      const btn = document.getElementById('detailDeleteBtn');
+      const label = document.getElementById('detailDeleteLabel');
+      if (btn) {
+        btn.className = 'h-8 px-2.5 rounded-full bg-white/15 hover:bg-red-500/85 flex items-center justify-center gap-1 text-white transition cursor-pointer';
+      }
+      if (label) label.classList.add('hidden');
+    }
+
+    function handleDeleteClick() {
+      if (!activeDetailId) return;
+      if (!deleteConfirmArmed) {
+        deleteConfirmArmed = true;
+        const btn = document.getElementById('detailDeleteBtn');
+        const label = document.getElementById('detailDeleteLabel');
+        if (btn) {
+          btn.className = 'h-8 px-3 rounded-full bg-red-600 text-white flex items-center justify-center gap-1 shadow-md transition cursor-pointer';
+        }
+        if (label) label.classList.remove('hidden');
+        showToast('Ketuk sekali lagi untuk menghapus judul ini');
+        deleteConfirmTimer = setTimeout(() => {
+          resetDeleteConfirmState();
+        }, 3500);
+        return;
+      }
+
+      resetDeleteConfirmState();
+      deleteCurrentDetail();
+    }
+
+    function deleteCurrentDetail() {
+      if (!activeDetailId) return;
+      if (bookAnimRafId) cancelAnimationFrame(bookAnimRafId);
+      isBookClosing = false;
+      items = items.filter(i => i.id !== activeDetailId);
+      activeShowcaseIndex = 0;
+      saveItemsToStorage();
+      closeModal('detailModal');
+      renderAll(true);
+      showToast('Judul dihapus dari rak');
+    }
+
+    // 6. ADD / EDIT FORM & FREE AUTO-COVER SEARCH
+    function openAddModal(editId = null, focusField = null) {
+      const form = document.getElementById('itemForm');
+      form.reset();
+      document.getElementById('coverSearchResultsBox').classList.add('hidden');
+
+      const datalist = document.getElementById('existingShelvesList');
+      if (datalist) {
+        datalist.innerHTML = getUniqueShelves().map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
+      }
+
+      if (editId) {
+        const item = items.find(i => i.id === editId);
+        if (!item) return;
+        document.getElementById('formModalTitle').textContent = 'Edit Judul';
+        document.getElementById('editItemId').value = item.id;
+        setFormCategory(item.category);
+        document.getElementById('formTitle').value = item.title;
+        document.getElementById('formCoverUrl').value = item.cover || '';
+        document.getElementById('formCreator').value = item.creator || '';
+        document.getElementById('formGenre').value = item.genre || '';
+        document.getElementById('formShelf').value = item.shelf || '';
+        document.getElementById('formStatus').value = item.status;
+        document.getElementById('formCurrent').value = item.current;
+        document.getElementById('formTotal').value = item.total;
+        document.getElementById('formRating').value = item.rating;
+        document.getElementById('formFavorite').checked = !!item.favorite;
+        document.getElementById('formQuote').value = item.quote || '';
+        document.getElementById('formNotes').value = item.notes || '';
+      } else {
+        document.getElementById('formModalTitle').textContent = 'Tambah Judul Baru';
+        document.getElementById('editItemId').value = '';
+        setFormCategory('book');
+        document.getElementById('formShelf').value = '';
+        document.getElementById('formStatus').value = 'completed';
+        document.getElementById('formCurrent').value = 250;
+        document.getElementById('formTotal').value = 250;
+        document.getElementById('formRating').value = 9.0;
+      }
+
+      updateForm3DPreview();
+      document.getElementById('formModal').classList.remove('hidden');
+
+      if (focusField === 'quote') {
+        setTimeout(() => {
+          const el = document.getElementById('formQuote');
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        }, 120);
+      } else if (focusField === 'notes') {
+        setTimeout(() => {
+          const el = document.getElementById('formNotes');
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        }, 120);
+      }
+    }
+
+    function setFormCategory(cat) {
+      document.getElementById('formCategory').value = cat;
+      const btnBook = document.getElementById('catBtnBook');
+      const btnWatch = document.getElementById('catBtnWatch');
+
+      if (cat === 'book') {
+        btnBook.className = 'py-2.5 rounded-xl font-extrabold text-xs bg-tealRef text-white shadow-sm flex items-center justify-center gap-2 transition cursor-pointer';
+        btnWatch.className = 'py-2.5 rounded-xl font-bold text-xs text-gray-600 flex items-center justify-center gap-2 transition cursor-pointer';
+        document.getElementById('creatorLabel').textContent = 'Penulis';
+        document.getElementById('currentProgLabel').textContent = 'Hal. Dibaca';
+        document.getElementById('totalProgLabel').textContent = 'Total Hal.';
+      } else {
+        btnWatch.className = 'py-2.5 rounded-xl font-extrabold text-xs bg-tealRef text-white shadow-sm flex items-center justify-center gap-2 transition cursor-pointer';
+        btnBook.className = 'py-2.5 rounded-xl font-bold text-xs text-gray-600 flex items-center justify-center gap-2 transition cursor-pointer';
+        document.getElementById('creatorLabel').textContent = 'Sutradara / Studio';
+        document.getElementById('currentProgLabel').textContent = 'Eps. Ditonton';
+        document.getElementById('totalProgLabel').textContent = 'Total Eps.';
+      }
+      updateForm3DPreview();
+    }
+
+    function syncStatusDefaults() {
+      const status = document.getElementById('formStatus').value;
+      const total = Number(document.getElementById('formTotal').value) || 1;
+      if (status === 'completed') {
+        document.getElementById('formCurrent').value = total;
+      } else if (status === 'wishlist') {
+        document.getElementById('formCurrent').value = 0;
+      }
+    }
+
+    function updateForm3DPreview() {
+      const mockItem = {
+        title: document.getElementById('formTitle').value || 'Sampul 3D',
+        category: document.getElementById('formCategory').value,
+        cover: document.getElementById('formCoverUrl').value
+      };
+      document.getElementById('formLive3DPreview').innerHTML = render3DObjectHTML(mockItem, 'w-14 h-20');
+    }
+
+    async function searchOnlineCovers() {
+      const query = document.getElementById('formTitle').value.trim();
+      const category = document.getElementById('formCategory').value;
+      if (!query) {
+        showToast('Ketik judul terlebih dahulu untuk mencari sampul');
+        return;
+      }
+
+      const btn = document.getElementById('autoCoverBtn');
+      const resultsBox = document.getElementById('coverSearchResultsBox');
+      const resultsGrid = document.getElementById('coverResultsGrid');
+      const statusText = document.getElementById('coverSearchStatus');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Mencari...</span>';
+      resultsBox.classList.remove('hidden');
+      statusText.textContent = 'Mengambil sampul asli dari katalog publik...';
+      resultsGrid.innerHTML = '';
+
+      try {
+        let candidates = [];
+
+        if (category === 'book') {
+          const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=8`);
+          const data = await res.json();
+          if (data.docs && data.docs.length > 0) {
+            candidates = data.docs
+              .filter(d => d.cover_i)
+              .slice(0, 6)
+              .map(d => ({
+                title: d.title,
+                creator: (d.author_name && d.author_name[0]) || '',
+                pages: d.number_of_pages_median || 250,
+                cover: `https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg`
+              }));
+          }
+        } else {
+          const [tvRes, itunesRes] = await Promise.allSettled([
+            fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`).then(r => r.json()),
+            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=movie&limit=5`).then(r => r.json())
+          ]);
+
+          if (itunesRes.status === 'fulfilled' && itunesRes.value.results) {
+            itunesRes.value.results.forEach(m => {
+              if (m.artworkUrl100) {
+                candidates.push({
+                  title: m.trackName,
+                  creator: m.artistName || '',
+                  pages: 1,
+                  cover: m.artworkUrl100.replace('100x100bb', '600x900bb')
+                });
+              }
+            });
+          }
+
+          if (tvRes.status === 'fulfilled' && Array.isArray(tvRes.value)) {
+            tvRes.value.slice(0, 4).forEach(entry => {
+              if (entry.show && entry.show.image && entry.show.image.original) {
+                candidates.push({
+                  title: entry.show.name,
+                  creator: (entry.show.network && entry.show.network.name) || 'Serial TV',
+                  pages: 12,
+                  cover: entry.show.image.original
+                });
+              }
+            });
+          }
+        }
+
+        if (candidates.length === 0) {
+          statusText.textContent = 'Tidak ditemukan otomatis. Kamu bisa unggah foto atau tempel URL gambar.';
+        } else {
+          statusText.textContent = `Ditemukan ${candidates.length} sampul asli (klik untuk pakai):`;
+          resultsGrid.innerHTML = candidates.map(c => `
+            <button type="button" onclick='applyFetchedCover(${JSON.stringify(c).replace(/'/g, "&#39;")})' class="shrink-0 w-16 text-left group cursor-pointer">
+              <div class="w-16 h-24 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-[#2A5D6B] shadow-sm bg-gray-200">
+                <img src="${c.cover}" alt="${escapeHtml(c.title)}" class="w-full h-24 object-cover" />
+              </div>
+              <p class="text-[9px] font-bold text-gray-700 truncate mt-1">${escapeHtml(c.title)}</p>
+            </button>
+          `).join('');
+        }
+      } catch (err) {
+        statusText.textContent = 'Koneksi terbatas. Silakan unggah foto dari perangkatmu.';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i><span>Cari Sampul</span>';
+      }
+    }
+
+    function applyFetchedCover(candidate) {
+      document.getElementById('formCoverUrl').value = candidate.cover;
+      if (candidate.creator && !document.getElementById('formCreator').value) {
+        document.getElementById('formCreator').value = candidate.creator;
+      }
+      if (candidate.pages) {
+        document.getElementById('formTotal').value = candidate.pages;
+        if (document.getElementById('formStatus').value === 'completed') {
+          document.getElementById('formCurrent').value = candidate.pages;
+        }
+      }
+      updateForm3DPreview();
+      showToast('Sampul asli diterapkan ke model 3D!');
+    }
+
+    function handleLocalCoverUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement('canvas');
+          const maxW = 320;
+          const scale = maxW / img.width;
+          canvas.width = maxW;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          document.getElementById('formCoverUrl').value = compressedDataUrl;
+          updateForm3DPreview();
+          showToast('Foto sampul berhasil diunggah!');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveItemForm(event) {
+      event.preventDefault();
+      const editId = document.getElementById('editItemId').value;
+      const title = document.getElementById('formTitle').value.trim();
+      const category = document.getElementById('formCategory').value;
+      const cover = document.getElementById('formCoverUrl').value.trim();
+      const creator = document.getElementById('formCreator').value.trim();
+      const genre = document.getElementById('formGenre').value.trim();
+      const shelf = document.getElementById('formShelf').value.trim();
+      const status = document.getElementById('formStatus').value;
+      const total = Math.max(1, Number(document.getElementById('formTotal').value) || 1);
+      let current = Math.max(0, Math.min(total, Number(document.getElementById('formCurrent').value) || 0));
+      if (status === 'completed') current = total;
+      const rating = Math.min(10, Math.max(1, Number(document.getElementById('formRating').value) || 8.5));
+      const favorite = document.getElementById('formFavorite').checked;
+      const quote = document.getElementById('formQuote').value.trim();
+      const notes = document.getElementById('formNotes').value.trim();
+
+      if (editId) {
+        const idx = items.findIndex(i => i.id === editId);
+        if (idx !== -1) {
+          items[idx] = {
+            ...items[idx],
+            title, category, cover, creator, genre, shelf, status, current, total, rating, favorite, quote, notes,
+            updatedAt: Date.now()
+          };
+        }
+        showToast('Perubahan disimpan!');
+      } else {
+        const newItem = {
+          id: 'item-' + Date.now(),
+          title, category, cover, creator, genre, shelf, status, current, total, rating, favorite, quote, notes,
+          updatedAt: Date.now()
+        };
+        items.unshift(newItem);
+        activeShowcaseIndex = 0;
+        showToast('Judul baru ditambahkan ke rak 3D!');
+      }
+
+      recordDailyActivity(2);
+      saveItemsToStorage();
+      closeModal('formModal');
+      renderAll();
+    }
+
+    // 7. STATISTICS, PROFILE, STREAK & BACKUP MODAL
+    function renderActivityHeatmap() {
+      const grid = document.getElementById('activityHeatmapGrid');
+      const badge = document.getElementById('streakBadgeText');
+      if (!grid) return;
+
+      const days = [];
+      let streak = 0;
+      let streakBroken = false;
+
+      for (let i = 0; i < 28; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const count = activityLog[key] || 0;
+        if (!streakBroken) {
+          if (count > 0) streak++;
+          else if (i > 0) streakBroken = true;
+        }
+        days.unshift({ key, count });
+      }
+
+      if (badge) badge.textContent = `${Math.max(1, streak)} Hari Beruntun`;
+
+      grid.innerHTML = days.map(day => {
+        let tone = 'bg-gray-200';
+        if (day.count >= 4) tone = 'bg-tealRef';
+        else if (day.count >= 2) tone = 'bg-tealRef/70';
+        else if (day.count >= 1) tone = 'bg-tealRef/40';
+        return `<div title="${day.key}: ${day.count} aktivitas" class="h-3.5 rounded-[4px] ${tone} transition"></div>`;
+      }).join('');
+    }
+
+    function openStatsModal() {
+      applyAccentTheme(profile.theme || 'teal', false);
+      renderActivityHeatmap();
+      document.getElementById('brandTitleInput').value = profile.brandTitle || 'Koleksiku';
+      document.getElementById('brandSubtitleInput').value = profile.brandSubtitle || 'Buku & tontonan pilihan';
+      document.getElementById('profileNameInput').value = profile.name || 'Pembaca';
+      document.getElementById('yearlyGoalInput').value = profile.yearlyGoal || 24;
+
+      const completedItems = items.filter(i => i.status === 'completed');
+      const booksDone = completedItems.filter(i => i.category === 'book').length;
+      const watchDone = completedItems.filter(i => i.category === 'watch').length;
+      const avgRating = items.length > 0
+        ? (items.reduce((acc, cur) => acc + Number(cur.rating || 0), 0) / items.length).toFixed(1)
+        : '0.0';
+      const totalPages = items
+        .filter(i => i.category === 'book')
+        .reduce((acc, cur) => acc + Number(cur.current || 0), 0);
+
+      const goal = Math.max(1, Number(profile.yearlyGoal) || 24);
+      const goalPct = Math.min(100, Math.round((completedItems.length / goal) * 100));
+
+      document.getElementById('goalRatioText').textContent = `${completedItems.length} / ${goal} Selesai (${goalPct}%)`;
+      document.getElementById('goalProgressBar').style.width = `${goalPct}%`;
+      document.getElementById('goalMotivationalText').textContent = goalPct >= 100
+        ? 'Target tahunanmu sudah tercapai dengan sangat baik.'
+        : `Kurang ${goal - completedItems.length} judul lagi untuk mencapai target tahun ini.`;
+
+      document.getElementById('statBooksDone').textContent = booksDone;
+      document.getElementById('statWatchDone').textContent = watchDone;
+      document.getElementById('statAvgRating').textContent = avgRating;
+      document.getElementById('statTotalPages').textContent = totalPages.toLocaleString('id-ID');
+
+      document.getElementById('statsModal').classList.remove('hidden');
+    }
+
+    function updateUserProfile() {
+      const customTitle = document.getElementById('brandTitleInput').value.trim();
+      const customSubtitle = document.getElementById('brandSubtitleInput').value.trim();
+      profile.brandTitle = customTitle || 'Koleksiku';
+      profile.brandSubtitle = customSubtitle || 'Buku & tontonan pilihan';
+      profile.name = document.getElementById('profileNameInput').value.trim() || 'Pembaca';
+      profile.yearlyGoal = Math.max(1, Number(document.getElementById('yearlyGoalInput').value) || 24);
+      saveProfileToStorage();
+      renderAll(false);
+
+      const completedItems = items.filter(i => i.status === 'completed');
+      const goal = Math.max(1, Number(profile.yearlyGoal) || 24);
+      const goalPct = Math.min(100, Math.round((completedItems.length / goal) * 100));
+      document.getElementById('goalRatioText').textContent = `${completedItems.length} / ${goal} Selesai (${goalPct}%)`;
+      document.getElementById('goalProgressBar').style.width = `${goalPct}%`;
+    }
+
+    function exportDataJSON() {
+      const blob = new Blob([JSON.stringify({ profile, items }, null, 2)], { type: 'application/json' });
+      triggerDownload(blob, `PustakaKopi_Backup_${new Date().toISOString().slice(0, 10)}.json`);
+      showToast('File JSON berhasil diunduh');
+    }
+
+    function exportDataCSV() {
+      const headers = ['Judul', 'Kategori', 'Penulis/Sutradara', 'Genre', 'Status', 'Progres', 'Total', 'Rating', 'Favorit', 'Kutipan'];
+      const rows = items.map(i => [
+        `"${(i.title || '').replace(/"/g, '""')}"`,
+        i.category === 'book' ? 'Buku' : 'Tontonan',
+        `"${(i.creator || '').replace(/"/g, '""')}"`,
+        `"${(i.genre || '').replace(/"/g, '""')}"`,
+        i.status,
+        i.current,
+        i.total,
+        i.rating,
+        i.favorite ? 'Ya' : 'Tidak',
+        `"${(i.quote || '').replace(/"/g, '""')}"`
+      ].join(','));
+
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      triggerDownload(blob, `PustakaKopi_Koleksi_${new Date().toISOString().slice(0, 10)}.csv`);
+      showToast('File CSV berhasil diekspor');
+    }
+
+    function importDataJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (Array.isArray(parsed.items)) {
+            items = parsed.items;
+            if (parsed.profile) profile = { ...profile, ...parsed.profile };
+            saveItemsToStorage();
+            saveProfileToStorage();
+            activeShowcaseIndex = 0;
+            renderAll();
+            closeModal('statsModal');
+            showToast(`Berhasil memulihkan ${items.length} judul!`);
+          } else {
+            showToast('Format file JSON tidak valid');
+          }
+        } catch (err) {
+          showToast('Gagal membaca file backup');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function triggerDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // 8. SHAREABLE AESTHETIC REVIEW CARD GENERATOR (HTML5 CANVAS)
+    function generateShareCard() {
+      const item = items.find(i => i.id === activeDetailId);
+      if (!item) return;
+
+      const theme = THEME_PRESETS[profile.theme] || THEME_PRESETS.teal;
+      const canvas = document.getElementById('shareCanvas');
+      const ctx = canvas.getContext('2d');
+
+      function drawCardBase() {
+        const grad = ctx.createLinearGradient(0, 0, 720, 960);
+        grad.addColorStop(0, theme.primary);
+        grad.addColorStop(1, theme.dark);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 720, 960);
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.roundRect(48, 340, 624, 560, 36);
+        ctx.fill();
+
+        ctx.fillStyle = theme.circle;
+        ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${(profile.brandTitle || 'KOLEKSIKU').toUpperCase()} • ARSIP 3D`, 360, 75);
+
+        ctx.fillStyle = theme.primary;
+        ctx.beginPath();
+        ctx.roundRect(275, 445, 170, 46, 23);
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(`★ ${Number(item.rating).toFixed(1)} / 10`, 360, 476);
+
+        ctx.fillStyle = '#1E2528';
+        ctx.font = '800 36px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(item.title.slice(0, 28), 360, 545);
+
+        ctx.fillStyle = '#85A3AC';
+        ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(item.creator || 'Koleksi Pilihan', 360, 585);
+
+        ctx.fillStyle = theme.primary;
+        ctx.font = 'italic 26px "Lora", serif';
+        const quoteStr = `"${(item.quote || item.notes || 'Cerita yang sangat berkesan dan penuh makna.').slice(0, 150)}"`;
+        wrapCanvasText(ctx, quoteStr, 360, 660, 520, 38);
+
+        ctx.fillStyle = '#9CA3AF';
+        ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(`Dicatat oleh ${profile.name}`, 360, 860);
+      }
+
+      function drawFallbackCoverBadge() {
+        ctx.save();
+        ctx.fillStyle = theme.dark;
+        ctx.shadowColor = 'rgba(0,0,0,0.4)';
+        ctx.shadowBlur = 24;
+        ctx.beginPath();
+        ctx.roundRect(265, 115, 190, 285, 14);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        wrapCanvasText(ctx, item.title, 360, 245, 150, 30);
+        ctx.restore();
+      }
+
+      drawCardBase();
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 32;
+        ctx.shadowOffsetX = -12;
+        ctx.shadowOffsetY = 18;
+        ctx.beginPath();
+        ctx.roundRect(265, 115, 190, 285, 14);
+        ctx.clip();
+        ctx.drawImage(img, 265, 115, 190, 285);
+        ctx.restore();
+        document.getElementById('shareModal').classList.remove('hidden');
+      };
+      img.onerror = function () {
+        drawFallbackCoverBadge();
+        document.getElementById('shareModal').classList.remove('hidden');
+      };
+      img.src = item.cover || createFallbackCover(item.title, item.category);
+    }
+
+    function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      let currY = y;
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.fillText(line, x, currY);
+          line = words[n] + ' ';
+          currY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, currY);
+    }
+
+    function downloadShareCanvas() {
+      const canvas = document.getElementById('shareCanvas');
+      try {
+        canvas.toBlob(blob => {
+          if (blob) {
+            triggerDownload(blob, `Ulasan_${Date.now()}.png`);
+            showToast('Kartu ulasan disimpan!');
+          } else {
+            showToast('Gagal mengekspor gambar');
+          }
+        });
+      } catch (err) {
+        showToast('Gambar sampul eksternal dilindungi CORS; gunakan foto unggahan lokal untuk ekspor PNG');
+      }
+    }
+
+    // 9. ALL LIST MODAL ("Lihat Semua")
+    function openAllListModal() {
+      const filtered = getFilteredItems();
+      document.getElementById('allModalCount').textContent = filtered.length;
+      const grid = document.getElementById('allListGrid');
+
+      if (filtered.length === 0) {
+        grid.className = 'p-6 flex flex-col items-center justify-center text-center flex-1';
+        grid.innerHTML = `
+          <div class="w-12 h-12 rounded-full bg-tealRef-soft text-tealRef flex items-center justify-center mb-3">
+            <i class="fa-solid fa-folder-open text-base"></i>
+          </div>
+          <p class="text-sm font-extrabold text-gray-800">Tidak ada judul di filter ini</p>
+          <p class="text-xs text-gray-400 mt-1 mb-4">Coba ganti kategori, rak, atau kata kunci pencarian.</p>
+          <button type="button" onclick="currentFilter='all'; currentShelfFilter='all'; clearSearch(); closeModal('allListModal');" class="px-4 py-2 rounded-full bg-tealRef text-white text-xs font-bold cursor-pointer">
+            Tampilkan Semua
+          </button>
+        `;
+      } else {
+        grid.className = 'p-5 grid grid-cols-2 gap-x-3.5 gap-y-8 overflow-y-auto no-scrollbar pt-9';
+        grid.innerHTML = filtered.map(item => `
+          <div onclick="closeModal('allListModal'); openDetailModal('${item.id}')" class="relative bg-[#F4F7F8] hover:bg-tealRef-soft rounded-[24px] pt-14 pb-3.5 px-3 text-center cursor-pointer transition">
+            <div class="absolute -top-6 left-1/2 -translate-x-1/2">
+              ${render3DObjectHTML(item, 'w-14 h-20')}
+            </div>
+            <h4 class="text-xs font-extrabold text-gray-900 truncate mt-1">${escapeHtml(item.title)}</h4>
+            <p class="text-[10px] text-gray-500 truncate">${escapeHtml(item.creator || '')}</p>
+            ${item.shelf ? `<span class="inline-block mt-1 px-2 py-0.5 rounded-full bg-white text-tealRef text-[9px] font-bold truncate max-w-full">${escapeHtml(item.shelf)}</span>` : ''}
+            <p class="text-[11px] font-extrabold text-tealRef mt-1 flex items-center justify-center gap-1">
+              <i class="fa-solid fa-star text-amber-400 text-[9px]"></i>
+              <span>${Number(item.rating).toFixed(1)}</span>
+            </p>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('allListModal').classList.remove('hidden');
+    }
+
+    // 10. UTILITIES
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+      if (id === 'detailModal') {
+        if (bookAnimRafId) cancelAnimationFrame(bookAnimRafId);
+        pauseFocusTimer();
+        resetDeleteConfirmState();
+        isBookClosing = false;
+        isBookOpenComplete = false;
+      }
+    }
+
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      document.getElementById('toastMessage').textContent = msg;
+      box.classList.remove('opacity-0', 'translate-y-3');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        box.classList.add('opacity-0', 'translate-y-3');
+      }, 2400);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
